@@ -10,12 +10,15 @@ import { IconoEditar, IconoEliminar } from "@/components/ui/Iconos";
 import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useEliminarProyecto } from "@/lib/proyectos/hooks";
 import type { Proyecto } from "@/lib/proyectos/tipos";
+import { ResumenFilaProyecto } from "@/components/proyectos/ResumenFilaProyecto";
 
 export function TablaProyectos({
   proyectos,
+  hayFiltrosActivos,
   onEditar,
 }: {
   proyectos: Proyecto[];
+  hayFiltrosActivos: boolean;
   onEditar: (proyecto: Proyecto) => void;
 }) {
   const mapaClientes = useMapaClientes();
@@ -33,7 +36,12 @@ export function TablaProyectos({
   }
 
   if (proyectos.length === 0) {
-    return <EstadoVacio titulo="No hay proyectos registrados" />;
+    return (
+      <EstadoVacio
+        titulo={hayFiltrosActivos ? "No hay proyectos que coincidan" : "No hay proyectos registrados"}
+        descripcion={hayFiltrosActivos ? "Probá ajustar la búsqueda o el filtro de cliente." : undefined}
+      />
+    );
   }
 
   return (
@@ -44,6 +52,8 @@ export function TablaProyectos({
           <TablaFila>
             <TablaEncabezadoCelda>Nombre</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Cliente</TablaEncabezadoCelda>
+            <TablaEncabezadoCelda>Tareas</TablaEncabezadoCelda>
+            <TablaEncabezadoCelda>Cotizaciones activas</TablaEncabezadoCelda>
             <TablaEncabezadoCelda />
           </TablaFila>
         </thead>
@@ -56,6 +66,7 @@ export function TablaProyectos({
                 </Link>
               </TablaCelda>
               <TablaCelda>{mapaClientes.get(proyecto.clienteId)?.nombre ?? "—"}</TablaCelda>
+              <ResumenFilaProyecto proyectoId={proyecto.id} />
               <TablaCelda>
                 <div className="flex justify-end gap-1">
                   <BotonAccionFila onClick={() => onEditar(proyecto)}>

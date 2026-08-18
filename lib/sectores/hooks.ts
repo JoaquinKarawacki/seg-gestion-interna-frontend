@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   actualizarSector,
@@ -11,6 +12,11 @@ const CLAVE_SECTORES = "sectores";
 
 export function useSectores() {
   return useQuery({ queryKey: [CLAVE_SECTORES], queryFn: listarSectores });
+}
+
+export function useMapaSectores() {
+  const { data } = useSectores();
+  return useMemo(() => new Map(data?.map((sector) => [sector.id, sector])), [data]);
 }
 
 export function useCrearSector() {

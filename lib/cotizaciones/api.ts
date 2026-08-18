@@ -9,6 +9,11 @@ export async function listarCotizacionesDeProyecto(proyectoId: string) {
   return datos;
 }
 
+export async function obtenerCotizacion(id: string) {
+  const { datos } = await peticion<RespuestaExitosa<Cotizacion>>(`/cotizaciones/${id}`);
+  return datos;
+}
+
 export async function crearCotizacion(dto: CrearCotizacionDto) {
   const formData = new FormData();
   formData.set("proyectoId", dto.proyectoId);

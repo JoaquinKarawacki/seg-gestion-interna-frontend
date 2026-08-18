@@ -82,3 +82,39 @@ export function IconoEliminar(props: PropsIcono) {
     </svg>
   );
 }
+
+export function IconoDocumento(props: PropsIcono) {
+  return (
+    <svg {...PROPS_BASE} {...props}>
+      <path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v5h5" />
+    </svg>
+  );
+}
+
+export function IconoReloj(props: PropsIcono) {
+  return (
+    <svg {...PROPS_BASE} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+export function IconoCheck(props: PropsIcono) {
+  return (
+    <svg {...PROPS_BASE} {...props}>
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+export function IconoBillete(props: PropsIcono) {
+  return (
+    <svg {...PROPS_BASE} {...props}>
+      <rect x="3" y="6" width="18" height="12" rx="1.5" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6.5 6v0M17.5 18v0" />
+    </svg>
+  );
+}

@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/lib/auth/contexto";
-import { IconoSalir } from "@/components/ui/Iconos";
+import { IconoCerrar, IconoMenu, IconoSalir } from "@/components/ui/Iconos";
 import type { RolUsuario } from "@/lib/auth/tipos";
 import logoSeg from "@/public/seg ingenieria logo.png";
 
@@ -29,6 +30,7 @@ const ITEMS_NAV: ItemNav[] = [
 export function EncabezadoApp() {
   const { usuario, cerrarSesion } = useAuth();
   const pathname = usePathname();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const itemsVisibles = ITEMS_NAV.filter(
     (item) => !item.roles || (usuario && item.roles.includes(usuario.rol)),
@@ -63,7 +65,7 @@ export function EncabezadoApp() {
           <div className="flex items-center gap-4">
             <Link
               href="/mi-cuenta"
-              className="text-sm text-gray-300 transition-colors hover:text-white"
+              className="hidden text-sm text-gray-300 transition-colors hover:text-white sm:inline"
             >
               {usuario?.nombre}
             </Link>
@@ -75,8 +77,42 @@ export function EncabezadoApp() {
             >
               <IconoSalir className="h-5 w-5" />
             </button>
+            <button
+              type="button"
+              onClick={() => setMenuAbierto((abierto) => !abierto)}
+              aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+              className="text-gray-300 transition-colors hover:text-white md:hidden"
+            >
+              {menuAbierto ? <IconoCerrar className="h-5 w-5" /> : <IconoMenu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+        {menuAbierto ? (
+          <nav className="flex flex-col border-t border-white/10 py-2 md:hidden">
+            {itemsVisibles.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuAbierto(false)}
+                className={clsx(
+                  "px-4 py-2.5 text-sm font-medium transition-colors",
+                  pathname.startsWith(item.href)
+                    ? "text-seg-rojo"
+                    : "text-gray-300 hover:text-white",
+                )}
+              >
+                {item.etiqueta}
+              </Link>
+            ))}
+            <Link
+              href="/mi-cuenta"
+              onClick={() => setMenuAbierto(false)}
+              className="border-t border-white/10 px-4 py-2.5 text-sm text-gray-300 transition-colors hover:text-white"
+            >
+              {usuario?.nombre}
+            </Link>
+          </nav>
+        ) : null}
       </div>
     </header>
   );

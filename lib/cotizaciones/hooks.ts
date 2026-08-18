@@ -3,6 +3,7 @@ import {
   crearCotizacion,
   descargarArchivoCotizacion,
   listarCotizacionesDeProyecto,
+  obtenerCotizacion,
 } from "@/lib/cotizaciones/api";
 import type { CrearCotizacionDto } from "@/lib/cotizaciones/tipos";
 
@@ -13,6 +14,14 @@ export function useCotizacionesDeProyecto(proyectoId: string | undefined) {
     queryKey: [CLAVE_COTIZACIONES, "proyecto", proyectoId],
     queryFn: () => listarCotizacionesDeProyecto(proyectoId as string),
     enabled: Boolean(proyectoId),
+  });
+}
+
+export function useCotizacion(id: string | undefined) {
+  return useQuery({
+    queryKey: [CLAVE_COTIZACIONES, id],
+    queryFn: () => obtenerCotizacion(id as string),
+    enabled: Boolean(id),
   });
 }
 
