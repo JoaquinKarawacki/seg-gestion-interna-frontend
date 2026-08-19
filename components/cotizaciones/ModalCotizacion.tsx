@@ -22,6 +22,7 @@ interface DatosFormulario {
   tareaId: string;
   proveedorId: string;
   montoTotal: string;
+  honorarios: string;
   moneda: Moneda;
   archivo: FileList | undefined;
 }
@@ -43,15 +44,19 @@ export function ModalCotizacion({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     defaultValues: {
       tareaId: tareaIdInicial ?? GENERAL,
       proveedorId: "",
       montoTotal: "",
+      honorarios: "",
       moneda: "UYU",
     },
   });
+
+  const esGeneral = watch("tareaId") === GENERAL;
 
   async function alEnviar(datos: DatosFormulario) {
     await crearCotizacion.mutateAsync({
@@ -59,6 +64,7 @@ export function ModalCotizacion({
       tareaId: datos.tareaId === GENERAL ? undefined : datos.tareaId,
       proveedorId: datos.proveedorId,
       montoTotal: Number(datos.montoTotal),
+      honorarios: esGeneral && datos.honorarios !== "" ? Number(datos.honorarios) : undefined,
       moneda: datos.moneda,
       archivo: datos.archivo?.[0],
     });
@@ -108,6 +114,17 @@ export function ModalCotizacion({
             ))}
           </Select>
         </div>
+        {esGeneral ? (
+          <Campo
+            etiqueta="Honorarios (opcional)"
+            type="number"
+            step="0.01"
+            error={errors.honorarios?.message}
+            {...register("honorarios", {
+              min: { value: 0, message: "No puede ser negativo" },
+            })}
+          />
+        ) : null}
         <Campo
           etiqueta="PDF de la cotización (opcional)"
           type="file"

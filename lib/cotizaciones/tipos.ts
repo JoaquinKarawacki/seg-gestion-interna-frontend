@@ -7,6 +7,7 @@ export interface Cotizacion {
   tareaId: string | null;
   proveedorId: string;
   montoTotal: string;
+  honorarios: string | null;
   moneda: Moneda;
   estado: EstadoCotizacion;
   archivoPdfRuta: string | null;
@@ -17,6 +18,9 @@ export interface CrearCotizacionDto {
   tareaId?: string;
   proveedorId: string;
   montoTotal: number;
+  // Solo tiene sentido cuando `tareaId` no viene (cotización general del
+  // proyecto) — el backend rechaza el request si se manda junto a tareaId.
+  honorarios?: number;
   moneda: Moneda;
   archivo?: File;
 }

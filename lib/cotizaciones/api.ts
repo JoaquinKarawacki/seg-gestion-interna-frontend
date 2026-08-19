@@ -20,6 +20,7 @@ export async function crearCotizacion(dto: CrearCotizacionDto) {
   if (dto.tareaId) formData.set("tareaId", dto.tareaId);
   formData.set("proveedorId", dto.proveedorId);
   formData.set("montoTotal", String(dto.montoTotal));
+  if (dto.honorarios !== undefined) formData.set("honorarios", String(dto.honorarios));
   formData.set("moneda", dto.moneda);
   if (dto.archivo) formData.set("archivo", dto.archivo);
 

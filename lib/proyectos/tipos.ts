@@ -3,6 +3,7 @@ export interface Proyecto {
   nombre: string;
   clienteId: string;
   sectorId: string | null;
+  costoSegManual: string | null;
 }
 
 export interface CrearProyectoDto {
@@ -15,4 +16,5 @@ export interface ActualizarProyectoDto {
   nombre?: string;
   clienteId?: string;
   sectorId?: string;
+  costoSegManual?: number;
 }

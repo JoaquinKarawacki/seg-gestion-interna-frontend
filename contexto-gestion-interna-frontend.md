@@ -393,6 +393,15 @@ app/(app)/auditoria/page.tsx → RequiereRol(["ADMIN"])
 
 **Gotcha de esta sesión (herramienta, no del código)**: mientras se iteraba sobre la versión con `useEffect`, el dev server logueó varios "Fast Refresh had to perform a full reload due to a runtime error" — si alguien tenía `/auditoria` abierto en el navegador en ese momento pudo ver un error parpadear. Se resolvió al reescribir con `useQueries`; las cargas posteriores quedaron limpias sin warnings.
 
+### Mejora post-Fase 4 — Costo/rentabilidad en la tarjeta "Comprometido" (2026-08-19)
+
+La tarjeta "Comprometido" de `/proyectos/[id]` (antes: solo el total comprometido + barra por proveedor) ahora muestra Costo aproximado, Honorarios, Costo SEG (editable), Gastado y Margen de equipo, con un gráfico nuevo (`BarraCostosProyecto`, Costo cliente/Costo SEG/Gastado) que **reemplazó y borró** `BarraComprometido` (quedó sin otros usos). También se borró `calcularComprometido`/`ComprometidoPorProveedor`/`ComprometidoPorMoneda` de `lib/cotizaciones/presentacion.ts` (quedaron sin consumidores).
+
+- `lib/proyectos/presentacion.ts` (nuevo) → `calcularResumenCostos(proyecto, cotizaciones, ordenesCompra)`: toma la moneda de la cotización general ACTIVA del proyecto como **única moneda de referencia** — cotizaciones de tarea u OC pagadas en otra moneda se excluyen del cálculo (se señala con una advertencia en la tarjeta, `hayOtrasMonedas`), no se mezclan montos de distinta moneda. Si no hay cotización general activa, devuelve `null` y la tarjeta cae al estado "Sin cotizaciones activas" de siempre.
+- `components/proyectos/TarjetaComprometido.tsx` (nuevo, reemplaza el bloque inline que había en `page.tsx`) → encapsula la edición de "Costo SEG": un valor manual se guarda vía `useActualizarProyecto(id).mutateAsync({ costoSegManual })` y queda fijo hasta tocar "Volver a calcular" (`useRecalcularCostoSegProyecto`, `POST /proyectos/:id/recalcular-costo-seg`). Es el primer campo editable de este tipo en la app — no existe (ni se creó) un componente `CampoEditable` genérico, la edición vive local a este componente.
+- `components/cotizaciones/ModalCotizacion.tsx` → nuevo campo "Honorarios" (opcional), visible **solo** cuando el alcance elegido es "General del proyecto" (`watch("tareaId") === GENERAL`) — para una cotización de tarea ni se muestra el campo, y si igual se manda, el backend lo rechaza con 422.
+- Sin restricción de rol nueva para ver/editar costo SEG o margen — decisión explícita del usuario, mismo criterio abierto que ya tenía Proyectos/Cotizaciones.
+
 ### ⬜ Fase 5 — Pulido
 Dashboard real por rol (mis borradores / pendientes de mi aprobación si ENCARGADO / para pagar si PAGOS — hoy `app/(app)/dashboard/page.tsx` es un placeholder que solo saluda). Estados de carga consistentes, manejo de errores consistente en toda la app, **responsive/mobile** (hoy `EncabezadoApp` no tiene menú mobile, ver Fase 0). Verificación visual real en navegador (pendiente desde la Fase 0 por falta de extensión Chrome conectada).
 

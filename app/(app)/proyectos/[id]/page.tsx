@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import clsx from "clsx";
-import { BarraComprometido } from "@/components/proyectos/BarraComprometido";
 import { FichaCliente } from "@/components/proyectos/FichaCliente";
+import { TarjetaComprometido } from "@/components/proyectos/TarjetaComprometido";
 import { ProveedoresInvolucrados } from "@/components/proyectos/ProveedoresInvolucrados";
 import { ModalTarea } from "@/components/tareas/ModalTarea";
 import { TablaTareas } from "@/components/tareas/TablaTareas";
@@ -20,7 +20,7 @@ import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
-import { calcularComprometido, formatearMonto } from "@/lib/cotizaciones/presentacion";
+import { formatearMonto } from "@/lib/cotizaciones/presentacion";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
@@ -67,7 +67,6 @@ export default function PaginaDetalleProyecto() {
   if (!proyecto.data) return null;
 
   const cliente = mapaClientes.get(proyecto.data.clienteId);
-  const comprometido = cotizaciones.data ? calcularComprometido(cotizaciones.data) : [];
   const proveedoresActivos = cotizaciones.data
     ? new Set(
         cotizaciones.data
@@ -92,20 +91,7 @@ export default function PaginaDetalleProyecto() {
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Comprometido</h2>
-          {!cotizaciones.data ? (
-            <Cargando etiqueta="Cargando..." />
-          ) : comprometido.length === 0 ? (
-            <p className="text-sm text-gray-400">Sin cotizaciones activas</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {comprometido.map(({ moneda, total, porProveedor }) => (
-                <div key={moneda}>
-                  <p className="text-2xl font-bold text-seg-rojo">{formatearMonto(String(total), moneda)}</p>
-                  <BarraComprometido moneda={moneda} porProveedor={porProveedor} />
-                </div>
-              ))}
-            </div>
-          )}
+          <TarjetaComprometido proyecto={proyecto.data} cotizaciones={cotizaciones.data} ordenesCompra={ordenesCompra.data} />
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Proveedores activos</h2>
