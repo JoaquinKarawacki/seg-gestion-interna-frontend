@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BarraCostosProyecto } from "@/components/proyectos/BarraCostosProyecto";
 import { BotonAccionFila } from "@/components/ui/BotonAccionFila";
 import { IconoEditar } from "@/components/ui/Iconos";
-import { formatearMonto } from "@/lib/cotizaciones/presentacion";
+import { formatearNumero } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
 import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
 import { useActualizarProyecto, useRecalcularCostoSegProyecto } from "@/lib/proyectos/hooks";
@@ -71,7 +71,7 @@ export function TarjetaComprometido({
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
 
   const encabezado = (
-    <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Comprometido</h2>
+    <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Costos y rentabilidad</h2>
   );
 
   if (!cotizaciones || !ordenesCompra) {
@@ -132,43 +132,38 @@ export function TarjetaComprometido({
       <div>
         <p className="text-xs uppercase tracking-wide text-gray-400">Costo aproximado</p>
         <p className="text-2xl font-bold text-seg-rojo">
-          {costoAproximado !== null ? formatearMonto(String(costoAproximado), moneda) : "—"}
+          {costoAproximado !== null ? formatearNumero(costoAproximado) : "—"}
         </p>
       </div>
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Honorarios</span>
         <span className="font-medium text-gray-800">
-          {honorarios !== null ? formatearMonto(String(honorarios), moneda) : "—"}
+          {honorarios !== null ? formatearNumero(honorarios) : "—"}
         </span>
       </div>
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Costo SEG</span>
         <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-800">{formatearMonto(String(costoSeg), moneda)}</span>
+          <span className="font-medium text-gray-800">{formatearNumero(costoSeg)}</span>
           {costoSegEditable ? <EdicionCostoSeg proyecto={proyecto} valorActual={costoSeg} /> : null}
         </div>
       </div>
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Gastado</span>
-        <span className="font-medium text-gray-800">{formatearMonto(String(gastado), moneda)}</span>
+        <span className="font-medium text-gray-800">{formatearNumero(gastado)}</span>
       </div>
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Margen de equipo</span>
         <span className="font-semibold text-gray-900">
-          {margenDeEquipo !== null ? `${formatearMonto(String(margenDeEquipo), moneda)} (${porcentajeMargen}%)` : "—"}
+          {margenDeEquipo !== null ? `${formatearNumero(margenDeEquipo)} (${porcentajeMargen}%)` : "—"}
         </span>
       </div>
 
-      <BarraCostosProyecto
-        moneda={moneda}
-        costoCliente={costoAproximado ?? 0}
-        costoSeg={costoSeg}
-        gastado={gastado}
-      />
+      <BarraCostosProyecto costoCliente={costoAproximado ?? 0} costoSeg={costoSeg} gastado={gastado} />
     </div>
   );
 }

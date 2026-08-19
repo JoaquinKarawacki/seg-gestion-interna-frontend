@@ -13,10 +13,15 @@ export const TONO_ESTADO_COTIZACION: Record<EstadoCotizacion, TonoInsignia> = {
   REEMPLAZADA: "apagado",
 };
 
-export function formatearMonto(montoTotal: string, moneda: Moneda): string {
-  const numero = Number(montoTotal);
-  const formateado = Number.isFinite(numero)
+// Sin prefijo de moneda — para pantallas donde la moneda ya se muestra una
+// sola vez aparte (ej. la tarjeta "Comprometido" de Proyecto).
+export function formatearNumero(monto: string | number): string {
+  const numero = Number(monto);
+  return Number.isFinite(numero)
     ? numero.toLocaleString("es-UY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : montoTotal;
-  return `${moneda} ${formateado}`;
+    : String(monto);
+}
+
+export function formatearMonto(montoTotal: string, moneda: Moneda): string {
+  return `${moneda} ${formatearNumero(montoTotal)}`;
 }

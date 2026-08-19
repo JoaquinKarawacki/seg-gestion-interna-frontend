@@ -1,7 +1,6 @@
 "use client";
 
-import { formatearMonto } from "@/lib/cotizaciones/presentacion";
-import type { Moneda } from "@/lib/cotizaciones/tipos";
+import { formatearNumero } from "@/lib/cotizaciones/presentacion";
 
 // Comparación de magnitudes (no de categorías) — mismo criterio secuencial de
 // un solo tono que ya usaba BarraComprometido: más oscuro = más monto.
@@ -12,12 +11,10 @@ const FILAS = [
 ] as const;
 
 export function BarraCostosProyecto({
-  moneda,
   costoCliente,
   costoSeg,
   gastado,
 }: {
-  moneda: Moneda;
   costoCliente: number;
   costoSeg: number;
   gastado: number;
@@ -33,7 +30,7 @@ export function BarraCostosProyecto({
           <li key={fila.clave} className="flex flex-col gap-1">
             <div className="flex items-center justify-between text-xs text-gray-600">
               <span>{fila.etiqueta}</span>
-              <span className="font-medium text-gray-700">{formatearMonto(String(valor), moneda)}</span>
+              <span className="font-medium text-gray-700">{formatearNumero(valor)}</span>
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
               <div
