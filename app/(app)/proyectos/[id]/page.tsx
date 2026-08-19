@@ -20,7 +20,6 @@ import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
-import { formatearMonto } from "@/lib/cotizaciones/presentacion";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
@@ -90,7 +89,6 @@ export default function PaginaDetalleProyecto() {
           <FichaCliente cliente={cliente} />
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Comprometido</h2>
           <TarjetaComprometido proyecto={proyecto.data} cotizaciones={cotizaciones.data} ordenesCompra={ordenesCompra.data} />
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">

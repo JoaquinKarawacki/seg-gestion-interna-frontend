@@ -5,7 +5,7 @@ import { BarraCostosProyecto } from "@/components/proyectos/BarraCostosProyecto"
 import { BotonAccionFila } from "@/components/ui/BotonAccionFila";
 import { IconoEditar } from "@/components/ui/Iconos";
 import { formatearMonto } from "@/lib/cotizaciones/presentacion";
-import type { Cotizacion } from "@/lib/cotizaciones/tipos";
+import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
 import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
 import { useActualizarProyecto, useRecalcularCostoSegProyecto } from "@/lib/proyectos/hooks";
 import { calcularResumenCostos } from "@/lib/proyectos/presentacion";
@@ -68,24 +68,72 @@ export function TarjetaComprometido({
   cotizaciones: Cotizacion[] | undefined;
   ordenesCompra: OrdenCompra[] | undefined;
 }) {
+  const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
+
+  const encabezado = (
+    <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Comprometido</h2>
+  );
+
   if (!cotizaciones || !ordenesCompra) {
-    return <p className="text-sm text-gray-400">Cargando...</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        {encabezado}
+        <p className="text-sm text-gray-400">Cargando...</p>
+      </div>
+    );
   }
 
-  const resumen = calcularResumenCostos(proyecto, cotizaciones, ordenesCompra);
+  const resumen = calcularResumenCostos(proyecto, cotizaciones, ordenesCompra, monedaSeleccionada);
 
   if (!resumen) {
-    return <p className="text-sm text-gray-400">Sin cotizaciones activas</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        {encabezado}
+        <p className="text-sm text-gray-400">Sin cotizaciones activas</p>
+      </div>
+    );
   }
 
-  const { moneda, costoAproximado, honorarios, costoSeg, gastado, margenDeEquipo, hayOtrasMonedas } = resumen;
-  const porcentajeMargen = costoAproximado !== 0 ? Math.round((margenDeEquipo / costoAproximado) * 100) : 0;
+  const {
+    moneda,
+    monedasDisponibles,
+    costoAproximado,
+    honorarios,
+    costoSeg,
+    costoSegEditable,
+    gastado,
+    margenDeEquipo,
+  } = resumen;
+  const porcentajeMargen =
+    costoAproximado !== null && costoAproximado !== 0
+      ? Math.round(((margenDeEquipo ?? 0) / costoAproximado) * 100)
+      : 0;
+
+  function cambiarMoneda() {
+    const indiceActual = monedasDisponibles.indexOf(moneda);
+    const siguiente = monedasDisponibles[(indiceActual + 1) % monedasDisponibles.length];
+    setMonedaSeleccionada(siguiente);
+  }
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        {encabezado}
+        <div className="flex items-center gap-1.5">
+          <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+            {moneda}
+          </span>
+          {monedasDisponibles.length > 1 ? (
+            <BotonAccionFila onClick={cambiarMoneda}>Cambiar</BotonAccionFila>
+          ) : null}
+        </div>
+      </div>
+
       <div>
         <p className="text-xs uppercase tracking-wide text-gray-400">Costo aproximado</p>
-        <p className="text-2xl font-bold text-seg-rojo">{formatearMonto(String(costoAproximado), moneda)}</p>
+        <p className="text-2xl font-bold text-seg-rojo">
+          {costoAproximado !== null ? formatearMonto(String(costoAproximado), moneda) : "—"}
+        </p>
       </div>
 
       <div className="flex items-center justify-between text-sm">
@@ -99,7 +147,7 @@ export function TarjetaComprometido({
         <span className="text-gray-500">Costo SEG</span>
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-800">{formatearMonto(String(costoSeg), moneda)}</span>
-          <EdicionCostoSeg proyecto={proyecto} valorActual={costoSeg} />
+          {costoSegEditable ? <EdicionCostoSeg proyecto={proyecto} valorActual={costoSeg} /> : null}
         </div>
       </div>
 
@@ -111,17 +159,16 @@ export function TarjetaComprometido({
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Margen de equipo</span>
         <span className="font-semibold text-gray-900">
-          {formatearMonto(String(margenDeEquipo), moneda)} ({porcentajeMargen}%)
+          {margenDeEquipo !== null ? `${formatearMonto(String(margenDeEquipo), moneda)} (${porcentajeMargen}%)` : "—"}
         </span>
       </div>
 
-      {hayOtrasMonedas ? (
-        <p className="text-xs text-gray-400">
-          Hay cotizaciones de tarea u órdenes de compra pagadas en otra moneda, no incluidas en estos totales.
-        </p>
-      ) : null}
-
-      <BarraCostosProyecto moneda={moneda} costoCliente={costoAproximado} costoSeg={costoSeg} gastado={gastado} />
+      <BarraCostosProyecto
+        moneda={moneda}
+        costoCliente={costoAproximado ?? 0}
+        costoSeg={costoSeg}
+        gastado={gastado}
+      />
     </div>
   );
 }
