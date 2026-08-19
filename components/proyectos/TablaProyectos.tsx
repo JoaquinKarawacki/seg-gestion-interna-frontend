@@ -8,6 +8,7 @@ import { EstadoError } from "@/components/ui/EstadoError";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { IconoEditar, IconoEliminar } from "@/components/ui/Iconos";
 import { useMapaClientes } from "@/lib/clientes/hooks";
+import { useMapaSectores } from "@/lib/sectores/hooks";
 import { useEliminarProyecto } from "@/lib/proyectos/hooks";
 import type { Proyecto } from "@/lib/proyectos/tipos";
 import { ResumenFilaProyecto } from "@/components/proyectos/ResumenFilaProyecto";
@@ -22,6 +23,7 @@ export function TablaProyectos({
   onEditar: (proyecto: Proyecto) => void;
 }) {
   const mapaClientes = useMapaClientes();
+  const mapaSectores = useMapaSectores();
   const eliminarProyecto = useEliminarProyecto();
   const [errorEliminar, setErrorEliminar] = useState<unknown>(null);
 
@@ -39,7 +41,7 @@ export function TablaProyectos({
     return (
       <EstadoVacio
         titulo={hayFiltrosActivos ? "No hay proyectos que coincidan" : "No hay proyectos registrados"}
-        descripcion={hayFiltrosActivos ? "Probá ajustar la búsqueda o el filtro de cliente." : undefined}
+        descripcion={hayFiltrosActivos ? "Probá ajustar la búsqueda o los filtros de cliente/sector." : undefined}
       />
     );
   }
@@ -52,6 +54,7 @@ export function TablaProyectos({
           <TablaFila>
             <TablaEncabezadoCelda>Nombre</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Cliente</TablaEncabezadoCelda>
+            <TablaEncabezadoCelda>Sector</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Tareas</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Cotizaciones activas</TablaEncabezadoCelda>
             <TablaEncabezadoCelda />
@@ -66,6 +69,9 @@ export function TablaProyectos({
                 </Link>
               </TablaCelda>
               <TablaCelda>{mapaClientes.get(proyecto.clienteId)?.nombre ?? "—"}</TablaCelda>
+              <TablaCelda>
+                {proyecto.sectorId ? mapaSectores.get(proyecto.sectorId)?.nombre ?? "—" : "—"}
+              </TablaCelda>
               <ResumenFilaProyecto proyectoId={proyecto.id} />
               <TablaCelda>
                 <div className="flex justify-end gap-1">

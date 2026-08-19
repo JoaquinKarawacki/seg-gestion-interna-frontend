@@ -311,6 +311,10 @@ En la sesión de Fase 0 el puerto 3000 estaba ocupado por otro proyecto (`dashbo
    | PAGOS | `pagos@segingenieria.com` |
    | SOLICITANTE | `solicitante@segingenieria.com` |
 
+### Producción (Railway)
+
+Desplegado: frontend `https://frontend-production-cbe52.up.railway.app`, backend `https://backend-production-dc81.up.railway.app`, mismos 4 usuarios de prueba de la tabla de arriba ya seedeados ahí (misma contraseña). Detalle completo del deploy (servicios, builder, gotchas, variables, estado de notificaciones por mail) en `contexto-gestion-interna-backend.md` → sección "Comandos de Railway" / "Despliegue actual en producción".
+
 ## Pendientes / decisiones abiertas
 
 - **Renombrar "Tarea" → "Rubro" (solo la etiqueta visible)** — decidido con el usuario el 2026-08-18, **todavía no implementado**.

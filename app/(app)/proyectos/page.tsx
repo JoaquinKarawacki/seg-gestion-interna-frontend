@@ -10,16 +10,19 @@ import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { IconoMas } from "@/components/ui/Iconos";
 import { useClientes } from "@/lib/clientes/hooks";
+import { useSectores } from "@/lib/sectores/hooks";
 import { useProyectos } from "@/lib/proyectos/hooks";
 import type { Proyecto } from "@/lib/proyectos/tipos";
 
 export default function PaginaProyectos() {
   const proyectos = useProyectos();
   const clientes = useClientes();
+  const sectores = useSectores();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [clienteId, setClienteId] = useState("");
+  const [sectorId, setSectorId] = useState("");
 
   const proyectosFiltrados = useMemo(() => {
     if (!proyectos.data) return [];
@@ -27,11 +30,12 @@ export default function PaginaProyectos() {
     return proyectos.data.filter((proyecto) => {
       const coincideNombre = proyecto.nombre.toLowerCase().includes(busquedaNormalizada);
       const coincideCliente = !clienteId || proyecto.clienteId === clienteId;
-      return coincideNombre && coincideCliente;
+      const coincideSector = !sectorId || proyecto.sectorId === sectorId;
+      return coincideNombre && coincideCliente && coincideSector;
     });
-  }, [proyectos.data, busqueda, clienteId]);
+  }, [proyectos.data, busqueda, clienteId, sectorId]);
 
-  const hayFiltrosActivos = busqueda.trim() !== "" || clienteId !== "";
+  const hayFiltrosActivos = busqueda.trim() !== "" || clienteId !== "" || sectorId !== "";
 
   function abrirCrear() {
     setProyectoEditando(null);
@@ -75,6 +79,20 @@ export default function PaginaProyectos() {
             {clientes.data?.map((cliente) => (
               <option key={cliente.id} value={cliente.id}>
                 {cliente.nombre}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="min-w-[200px]">
+          <Select
+            etiqueta="Sector"
+            value={sectorId}
+            onChange={(evento) => setSectorId(evento.target.value)}
+          >
+            <option value="">Todos</option>
+            {sectores.data?.map((sector) => (
+              <option key={sector.id} value={sector.id}>
+                {sector.nombre}
               </option>
             ))}
           </Select>

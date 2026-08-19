@@ -8,12 +8,16 @@ import { Boton } from "@/components/ui/Boton";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { useClientes } from "@/lib/clientes/hooks";
+import { useSectores } from "@/lib/sectores/hooks";
 import { useActualizarProyecto, useCrearProyecto } from "@/lib/proyectos/hooks";
 import type { Proyecto } from "@/lib/proyectos/tipos";
+
+const SIN_SECTOR = "";
 
 interface DatosFormulario {
   nombre: string;
   clienteId: string;
+  sectorId: string;
 }
 
 export function ModalProyecto({
@@ -24,6 +28,7 @@ export function ModalProyecto({
   onCerrar: () => void;
 }) {
   const clientes = useClientes();
+  const sectores = useSectores();
   const crearProyecto = useCrearProyecto();
   const actualizarProyecto = useActualizarProyecto(proyecto?.id ?? "");
   const mutacion = proyecto ? actualizarProyecto : crearProyecto;
@@ -36,19 +41,22 @@ export function ModalProyecto({
     defaultValues: {
       nombre: proyecto?.nombre ?? "",
       clienteId: proyecto?.clienteId ?? "",
+      sectorId: proyecto?.sectorId ?? SIN_SECTOR,
     },
   });
 
   async function alEnviar(datos: DatosFormulario) {
-    await mutacion.mutateAsync(datos);
+    const sectorId = datos.sectorId === SIN_SECTOR ? undefined : datos.sectorId;
+    await mutacion.mutateAsync({ ...datos, sectorId });
     onCerrar();
   }
 
   return (
     <Modal titulo={proyecto ? "Editar proyecto" : "Nuevo proyecto"} abierto onCerrar={onCerrar}>
-      {clientes.isLoading ? <Cargando etiqueta="Cargando clientes..." /> : null}
+      {clientes.isLoading || sectores.isLoading ? <Cargando etiqueta="Cargando..." /> : null}
       {clientes.isError ? <EstadoError error={clientes.error} /> : null}
-      {clientes.data ? (
+      {sectores.isError ? <EstadoError error={sectores.error} /> : null}
+      {clientes.data && sectores.data ? (
         <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
           {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
           <Campo
@@ -65,6 +73,14 @@ export function ModalProyecto({
             {clientes.data.map((cliente) => (
               <option key={cliente.id} value={cliente.id}>
                 {cliente.nombre}
+              </option>
+            ))}
+          </Select>
+          <Select etiqueta="Sector" error={errors.sectorId?.message} {...register("sectorId")}>
+            <option value={SIN_SECTOR}>— Sin sector —</option>
+            {sectores.data.map((sector) => (
+              <option key={sector.id} value={sector.id}>
+                {sector.nombre}
               </option>
             ))}
           </Select>
