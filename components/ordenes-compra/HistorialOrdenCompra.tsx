@@ -16,7 +16,7 @@ export function HistorialOrdenCompra({ historial }: { historial: HistorialEstado
   }
 
   function nombreUsuario(usuarioId: string): string {
-    if (usuarioId === usuario?.id) return "Vos";
+    if (usuarioId === usuario?.id) return usuario.email;
     return mapaUsuarios.get(usuarioId)?.nombre ?? "—";
   }
 

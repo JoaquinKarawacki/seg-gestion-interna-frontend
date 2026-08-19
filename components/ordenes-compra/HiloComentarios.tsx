@@ -33,7 +33,7 @@ export function HiloComentarios({ ordenCompraId }: { ordenCompraId: string }) {
   }
 
   function nombreAutor(autorId: string): string {
-    if (autorId === usuario?.id) return "Vos";
+    if (autorId === usuario?.id) return usuario.email;
     return mapaUsuarios.get(autorId)?.nombre ?? "—";
   }
 
