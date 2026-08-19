@@ -10,6 +10,7 @@ import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
 import { useActualizarProyecto, useRecalcularCostoSegProyecto } from "@/lib/proyectos/hooks";
 import { calcularResumenCostos } from "@/lib/proyectos/presentacion";
 import type { Proyecto } from "@/lib/proyectos/tipos";
+import { useMapaTiposCambio } from "@/lib/tipos-cambio/hooks";
 
 function EdicionCostoSeg({ proyecto, valorActual }: { proyecto: Proyecto; valorActual: number }) {
   const [editando, setEditando] = useState(false);
@@ -69,6 +70,10 @@ export function TarjetaComprometido({
   ordenesCompra: OrdenCompra[] | undefined;
 }) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
+  const mapaTiposCambio = useMapaTiposCambio();
+  const tasas = new Map<Moneda, number>(
+    Array.from(mapaTiposCambio, ([moneda, tipoCambio]) => [moneda, Number(tipoCambio.valorEnUyu)]),
+  );
 
   const encabezado = (
     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Costos y rentabilidad</h2>
@@ -83,7 +88,7 @@ export function TarjetaComprometido({
     );
   }
 
-  const resumen = calcularResumenCostos(proyecto, cotizaciones, ordenesCompra, monedaSeleccionada);
+  const resumen = calcularResumenCostos(proyecto, cotizaciones, ordenesCompra, tasas, monedaSeleccionada);
 
   if (!resumen) {
     return (

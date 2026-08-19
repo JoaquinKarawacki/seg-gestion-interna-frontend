@@ -18,7 +18,9 @@ export interface ResumenCostosProyecto {
 
 // Todas las monedas con actividad en el proyecto: la de la cotización general
 // activa (si hay) primero, seguida de las de cotizaciones de tarea activas y
-// de órdenes de compra pagadas — en ese orden de aparición, sin repetir.
+// de órdenes de compra pagadas — en ese orden de aparición, sin repetir. Solo
+// se usa para decidir si hay algo para mostrar (tarjeta vacía o no); el
+// selector de moneda cicla siempre sobre las 3 monedas soportadas por la app.
 export function obtenerMonedasDisponibles(
   cotizaciones: Cotizacion[],
   ordenesCompra: OrdenCompra[],
@@ -41,17 +43,31 @@ export function obtenerMonedasDisponibles(
   return monedas;
 }
 
-// La cotización general activa (tareaId null) es la "moneda por defecto" del
-// proyecto — Costo aproximado/Honorarios/Margen de equipo dependen de ella y
-// por eso solo se muestran cuando la moneda elegida coincide con la suya (en
-// cualquier otra moneda no hay de dónde sacar esos tres valores). Costo SEG
-// (calculado) y Gastado sí se recalculan para la moneda elegida. El override
-// manual de Costo SEG vive como un solo valor en el Proyecto, sin moneda
-// propia, así que solo es editable en la moneda de la cotización general.
+// UYU es la base (tasa 1 implícita); USD/EUR vienen del mapa de tipos de
+// cambio (`useMapaTiposCambio`). Si todavía no se cargó/seteó una tasa, se
+// usa 1 como default inofensivo (no revienta el cálculo, solo no convierte).
+function obtenerTasaEnUyu(moneda: Moneda, tasas: Map<Moneda, number>): number {
+  if (moneda === "UYU") return 1;
+  return tasas.get(moneda) ?? 1;
+}
+
+function convertir(monto: number, monedaOrigen: Moneda, monedaDestino: Moneda, tasas: Map<Moneda, number>): number {
+  if (monedaOrigen === monedaDestino) return monto;
+  const montoEnUyu = monto * obtenerTasaEnUyu(monedaOrigen, tasas);
+  return montoEnUyu / obtenerTasaEnUyu(monedaDestino, tasas);
+}
+
+// La cotización general activa (tareaId null) es la moneda "de origen" del
+// override manual de Costo SEG (solo se puede editar mientras se está viendo
+// esa moneda) — en cualquier otra moneda se convierte con las tasas, igual
+// que el resto de los montos. Nada se excluye: todo se convierte a la moneda
+// elegida antes de sumar/restar, así el selector siempre muestra números
+// reales y no ceros.
 export function calcularResumenCostos(
   proyecto: Proyecto,
   cotizaciones: Cotizacion[],
   ordenesCompra: OrdenCompra[],
+  tasas: Map<Moneda, number>,
   monedaSeleccionada?: Moneda,
 ): ResumenCostosProyecto | null {
   if (obtenerMonedasDisponibles(cotizaciones, ordenesCompra).length === 0) return null;
@@ -59,29 +75,33 @@ export function calcularResumenCostos(
   const general = cotizaciones.find(
     (cotizacion) => cotizacion.tareaId === null && cotizacion.estado === "ACTIVA",
   );
-  // El cambio de moneda tiene que poder hacerse siempre, aunque el proyecto
-  // hoy solo tenga actividad en una — por eso se cicla sobre las 3 monedas
-  // soportadas por la app (MONEDAS), no solo sobre las que ya tienen datos.
   const moneda = monedaSeleccionada ?? general?.moneda ?? MONEDAS[0];
-  const costoSegEditable = general?.moneda === moneda;
 
-  const costoAproximado = costoSegEditable && general ? Number(general.montoTotal) : null;
+  const costoAproximado = general
+    ? convertir(Number(general.montoTotal), general.moneda, moneda, tasas)
+    : null;
   const honorarios =
-    costoSegEditable && general && general.honorarios !== null ? Number(general.honorarios) : null;
+    general && general.honorarios !== null
+      ? convertir(Number(general.honorarios), general.moneda, moneda, tasas)
+      : null;
 
-  const cotizacionesDeTarea = cotizaciones.filter(
-    (cotizacion) => cotizacion.tareaId !== null && cotizacion.estado === "ACTIVA",
-  );
-  const costoSegCalculado = cotizacionesDeTarea
-    .filter((cotizacion) => cotizacion.moneda === moneda)
-    .reduce((acc, cotizacion) => acc + Number(cotizacion.montoTotal), 0);
+  const costoSegCalculado = cotizaciones
+    .filter((cotizacion) => cotizacion.tareaId !== null && cotizacion.estado === "ACTIVA")
+    .reduce(
+      (acc, cotizacion) => acc + convertir(Number(cotizacion.montoTotal), cotizacion.moneda, moneda, tasas),
+      0,
+    );
 
   const gastado = ordenesCompra
-    .filter((orden) => orden.estado === "PAGADO" && orden.moneda === moneda)
-    .reduce((acc, orden) => acc + Number(orden.monto), 0);
+    .filter((orden) => orden.estado === "PAGADO")
+    .reduce((acc, orden) => acc + convertir(Number(orden.monto), orden.moneda, moneda, tasas), 0);
 
+  const costoSegEditable = general?.moneda === moneda;
+  const costoSegManualBase = proyecto.costoSegManual !== null ? Number(proyecto.costoSegManual) : null;
   const costoSegManual =
-    costoSegEditable && proyecto.costoSegManual !== null ? Number(proyecto.costoSegManual) : null;
+    costoSegManualBase !== null && general
+      ? convertir(costoSegManualBase, general.moneda, moneda, tasas)
+      : costoSegManualBase;
   const costoSeg = costoSegManual ?? costoSegCalculado;
   const margenDeEquipo = costoAproximado !== null ? costoAproximado - costoSeg : null;
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RequiereRol } from "@/components/layout/RequiereRol";
+import { SeccionTiposCambio } from "@/components/auditoria/SeccionTiposCambio";
 import { TablaAuditoria } from "@/components/auditoria/TablaAuditoria";
 import { Boton } from "@/components/ui/Boton";
 import { Select } from "@/components/ui/Select";
@@ -112,6 +113,8 @@ export default function PaginaAuditoria() {
             ) : null}
           </>
         ) : null}
+
+        <SeccionTiposCambio />
       </div>
     </RequiereRol>
   );
