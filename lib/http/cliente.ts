@@ -58,6 +58,7 @@ export async function peticion<T>(ruta: string, opciones: OpcionesPeticion = {})
     method: metodo,
     headers,
     body: formData ?? (cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined),
+    cache: "no-store",
   });
 
   if (respuesta.status === 204) {
