@@ -1,3 +1,4 @@
+import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
 import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
 import type { Proyecto } from "@/lib/proyectos/tipos";
@@ -53,13 +54,15 @@ export function calcularResumenCostos(
   ordenesCompra: OrdenCompra[],
   monedaSeleccionada?: Moneda,
 ): ResumenCostosProyecto | null {
-  const monedasDisponibles = obtenerMonedasDisponibles(cotizaciones, ordenesCompra);
-  if (monedasDisponibles.length === 0) return null;
+  if (obtenerMonedasDisponibles(cotizaciones, ordenesCompra).length === 0) return null;
 
   const general = cotizaciones.find(
     (cotizacion) => cotizacion.tareaId === null && cotizacion.estado === "ACTIVA",
   );
-  const moneda = monedaSeleccionada ?? general?.moneda ?? monedasDisponibles[0];
+  // El cambio de moneda tiene que poder hacerse siempre, aunque el proyecto
+  // hoy solo tenga actividad en una — por eso se cicla sobre las 3 monedas
+  // soportadas por la app (MONEDAS), no solo sobre las que ya tienen datos.
+  const moneda = monedaSeleccionada ?? general?.moneda ?? MONEDAS[0];
   const costoSegEditable = general?.moneda === moneda;
 
   const costoAproximado = costoSegEditable && general ? Number(general.montoTotal) : null;
@@ -84,7 +87,7 @@ export function calcularResumenCostos(
 
   return {
     moneda,
-    monedasDisponibles,
+    monedasDisponibles: MONEDAS,
     costoAproximado,
     honorarios,
     costoSegCalculado,
