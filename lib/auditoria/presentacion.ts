@@ -11,6 +11,7 @@ export const ENTIDADES_AUDITORIA = [
   "Proyecto",
   "Tarea",
   "Cotizacion",
+  "PropuestaInversion",
   "OrdenCompra",
 ] as const;
 
@@ -35,6 +36,7 @@ export const ACCIONES_AUDITORIA = [
   "ACTUALIZAR_TAREA",
   "ELIMINAR_TAREA",
   "CREAR_COTIZACION",
+  "CREAR_PROPUESTA_INVERSION",
   "CREAR_ORDEN_COMPRA",
   "ACTUALIZAR_ORDEN_COMPRA",
   "ELIMINAR_ORDEN_COMPRA",

@@ -7,6 +7,8 @@ import { IconoEditar } from "@/components/ui/Iconos";
 import { formatearNumero } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
 import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
+import { encontrarPropuestaActiva } from "@/lib/propuestas-inversion/presentacion";
+import { usePropuestasInversionDeProyecto } from "@/lib/propuestas-inversion/hooks";
 import { useActualizarProyecto, useRecalcularCostoSegProyecto } from "@/lib/proyectos/hooks";
 import { calcularResumenCostos } from "@/lib/proyectos/presentacion";
 import type { Proyecto } from "@/lib/proyectos/tipos";
@@ -71,6 +73,7 @@ export function TarjetaComprometido({
 }) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
   const mapaTiposCambio = useMapaTiposCambio();
+  const propuestas = usePropuestasInversionDeProyecto(proyecto.id);
   const tasas = new Map<Moneda, number>(
     Array.from(mapaTiposCambio, ([moneda, tipoCambio]) => [moneda, Number(tipoCambio.valorEnUyu)]),
   );
@@ -79,7 +82,7 @@ export function TarjetaComprometido({
     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Costos y rentabilidad</h2>
   );
 
-  if (!cotizaciones || !ordenesCompra) {
+  if (!cotizaciones || !ordenesCompra || !propuestas.data) {
     return (
       <div className="flex flex-col gap-2">
         {encabezado}
@@ -88,13 +91,21 @@ export function TarjetaComprometido({
     );
   }
 
-  const resumen = calcularResumenCostos(proyecto, cotizaciones, ordenesCompra, tasas, monedaSeleccionada);
+  const propuestaActiva = encontrarPropuestaActiva(propuestas.data);
+  const resumen = calcularResumenCostos(
+    proyecto,
+    propuestaActiva,
+    cotizaciones,
+    ordenesCompra,
+    tasas,
+    monedaSeleccionada,
+  );
 
   if (!resumen) {
     return (
       <div className="flex flex-col gap-2">
         {encabezado}
-        <p className="text-sm text-gray-400">Sin cotizaciones activas</p>
+        <p className="text-sm text-gray-400">Sin propuesta ni cotizaciones activas</p>
       </div>
     );
   }

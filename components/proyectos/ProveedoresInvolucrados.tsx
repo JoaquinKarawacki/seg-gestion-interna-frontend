@@ -23,9 +23,7 @@ export function ProveedoresInvolucrados({
   return (
     <ul className="flex flex-col gap-2">
       {activas.map((cotizacion) => {
-        const alcance = cotizacion.tareaId
-          ? tareas.find((tarea) => tarea.id === cotizacion.tareaId)?.nombre ?? "—"
-          : "General del proyecto";
+        const alcance = tareas.find((tarea) => tarea.id === cotizacion.tareaId)?.nombre ?? "—";
 
         return (
           <li

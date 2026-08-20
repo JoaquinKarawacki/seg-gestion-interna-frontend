@@ -47,17 +47,15 @@ export function TablaCotizaciones({
 }: {
   cotizaciones: Cotizacion[];
   tareas: Tarea[];
-  onNuevaCotizacion: (tareaId: string | null) => void;
+  onNuevaCotizacion: (tareaId: string) => void;
 }) {
   const mapaProveedores = useMapaProveedores();
 
-  const grupos = [{ id: null as string | null, nombre: "General del proyecto" }, ...tareas].map(
-    (grupo) => ({
-      id: grupo.id,
-      nombre: grupo.nombre,
-      cotizaciones: cotizaciones.filter((c) => c.tareaId === grupo.id),
-    }),
-  );
+  const grupos = tareas.map((tarea) => ({
+    id: tarea.id,
+    nombre: tarea.nombre,
+    cotizaciones: cotizaciones.filter((c) => c.tareaId === tarea.id),
+  }));
 
   const gruposConDatos = grupos.filter((grupo) => grupo.cotizaciones.length > 0);
 
@@ -68,7 +66,7 @@ export function TablaCotizaciones({
   return (
     <div className="flex flex-col gap-6">
       {gruposConDatos.map((grupo) => (
-        <div key={grupo.id ?? "general"} className="flex flex-col gap-2">
+        <div key={grupo.id} className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-700">{grupo.nombre}</h3>
             <BotonAccionFila onClick={() => onNuevaCotizacion(grupo.id)}>

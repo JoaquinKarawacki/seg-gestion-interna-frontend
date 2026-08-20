@@ -16,13 +16,10 @@ import {
 import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import type { Tarea } from "@/lib/tareas/tipos";
 
-const GENERAL = "";
-
 interface DatosFormulario {
   tareaId: string;
   proveedorId: string;
   montoTotal: string;
-  honorarios: string;
   moneda: Moneda;
   archivo: FileList | undefined;
 }
@@ -44,27 +41,32 @@ export function ModalCotizacion({
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     defaultValues: {
-      tareaId: tareaIdInicial ?? GENERAL,
+      tareaId: tareaIdInicial ?? tareas[0]?.id ?? "",
       proveedorId: "",
       montoTotal: "",
-      honorarios: "",
       moneda: "UYU",
     },
   });
 
-  const esGeneral = watch("tareaId") === GENERAL;
+  if (tareas.length === 0) {
+    return (
+      <Modal titulo="Nueva cotización" abierto onCerrar={onCerrar}>
+        <p className="text-sm text-gray-500">
+          Creá una tarea antes de cargar una cotización.
+        </p>
+      </Modal>
+    );
+  }
 
   async function alEnviar(datos: DatosFormulario) {
     await crearCotizacion.mutateAsync({
       proyectoId,
-      tareaId: datos.tareaId === GENERAL ? undefined : datos.tareaId,
+      tareaId: datos.tareaId,
       proveedorId: datos.proveedorId,
       montoTotal: Number(datos.montoTotal),
-      honorarios: esGeneral && datos.honorarios !== "" ? Number(datos.honorarios) : undefined,
       moneda: datos.moneda,
       archivo: datos.archivo?.[0],
     });
@@ -75,8 +77,11 @@ export function ModalCotizacion({
     <Modal titulo="Nueva cotización" abierto onCerrar={onCerrar}>
       <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
         {crearCotizacion.error ? <EstadoError error={crearCotizacion.error} /> : null}
-        <Select etiqueta="Alcance" error={errors.tareaId?.message} {...register("tareaId")}>
-          <option value={GENERAL}>General del proyecto</option>
+        <Select
+          etiqueta="Tarea"
+          error={errors.tareaId?.message}
+          {...register("tareaId", { required: "Requerido" })}
+        >
           {tareas.map((tarea) => (
             <option key={tarea.id} value={tarea.id}>
               {tarea.nombre}
@@ -114,17 +119,6 @@ export function ModalCotizacion({
             ))}
           </Select>
         </div>
-        {esGeneral ? (
-          <Campo
-            etiqueta="Honorarios (opcional)"
-            type="number"
-            step="0.01"
-            error={errors.honorarios?.message}
-            {...register("honorarios", {
-              min: { value: 0, message: "No puede ser negativo" },
-            })}
-          />
-        ) : null}
         <Campo
           etiqueta="PDF de la cotización (opcional)"
           type="file"

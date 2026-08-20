@@ -11,6 +11,8 @@ import { ModalTarea } from "@/components/tareas/ModalTarea";
 import { TablaTareas } from "@/components/tareas/TablaTareas";
 import { ModalCotizacion } from "@/components/cotizaciones/ModalCotizacion";
 import { TablaCotizaciones } from "@/components/cotizaciones/TablaCotizaciones";
+import { ModalPropuestaInversion } from "@/components/propuestas-inversion/ModalPropuestaInversion";
+import { TablaPropuestasInversion } from "@/components/propuestas-inversion/TablaPropuestasInversion";
 import { TablaOrdenesCompraProyecto } from "@/components/ordenes-compra/TablaOrdenesCompraProyecto";
 import { Boton, BotonLink } from "@/components/ui/Boton";
 import { Cargando } from "@/components/ui/Cargando";
@@ -20,14 +22,15 @@ import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
+import { usePropuestasInversionDeProyecto } from "@/lib/propuestas-inversion/hooks";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
-const TABS = ["resumen", "tareas", "cotizaciones", "ordenes-compra"] as const;
+const TABS = ["resumen", "propuesta-inversion", "cotizaciones", "ordenes-compra"] as const;
 type Tab = (typeof TABS)[number];
 const ETIQUETAS_TAB: Record<Tab, string> = {
   resumen: "Resumen",
-  tareas: "Tareas",
+  "propuesta-inversion": "Propuesta de inversión",
   cotizaciones: "Cotizaciones",
   "ordenes-compra": "Órdenes de Compra",
 };
@@ -38,6 +41,7 @@ export default function PaginaDetalleProyecto() {
   const mapaClientes = useMapaClientes();
   const tareas = useTareasDeProyecto(id);
   const cotizaciones = useCotizacionesDeProyecto(id);
+  const propuestasInversion = usePropuestasInversionDeProyecto(id);
   const ordenesCompra = useOrdenesCompraDeProyecto(id);
 
   const [tab, setTab] = useState<Tab>("resumen");
@@ -45,6 +49,7 @@ export default function PaginaDetalleProyecto() {
   const [tareaEditando, setTareaEditando] = useState<Tarea | null>(null);
   const [modalCotizacionAbierto, setModalCotizacionAbierto] = useState(false);
   const [tareaIdParaCotizacion, setTareaIdParaCotizacion] = useState<string | null>(null);
+  const [modalPropuestaAbierto, setModalPropuestaAbierto] = useState(false);
 
   function abrirCrearTarea() {
     setTareaEditando(null);
@@ -56,7 +61,7 @@ export default function PaginaDetalleProyecto() {
     setModalTareaAbierto(true);
   }
 
-  function abrirNuevaCotizacion(tareaId: string | null) {
+  function abrirNuevaCotizacion(tareaId: string) {
     setTareaIdParaCotizacion(tareaId);
     setModalCotizacionAbierto(true);
   }
@@ -130,39 +135,63 @@ export default function PaginaDetalleProyecto() {
         </div>
       ) : null}
 
-      {tab === "tareas" ? (
+      {tab === "propuesta-inversion" ? (
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Tareas</h2>
-            <Boton tamanio="sm" onClick={abrirCrearTarea}>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
+              Propuesta de inversión
+            </h2>
+            <Boton tamanio="sm" onClick={() => setModalPropuestaAbierto(true)}>
               <IconoMas className="h-4 w-4" />
-              Nueva tarea
+              Nueva versión
             </Boton>
           </div>
-          {tareas.isLoading ? <Cargando etiqueta="Cargando tareas..." /> : null}
-          {tareas.isError ? <EstadoError error={tareas.error} /> : null}
-          {tareas.data ? <TablaTareas tareas={tareas.data} onEditar={abrirEditarTarea} /> : null}
+          {propuestasInversion.isLoading ? <Cargando etiqueta="Cargando propuestas..." /> : null}
+          {propuestasInversion.isError ? <EstadoError error={propuestasInversion.error} /> : null}
+          {propuestasInversion.data ? (
+            <TablaPropuestasInversion propuestas={propuestasInversion.data} />
+          ) : null}
         </div>
       ) : null}
 
       {tab === "cotizaciones" ? (
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Cotizaciones</h2>
-            <Boton tamanio="sm" onClick={() => abrirNuevaCotizacion(null)}>
-              <IconoMas className="h-4 w-4" />
-              Nueva cotización
-            </Boton>
+        <div className="flex flex-col gap-6">
+          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Tareas</h2>
+              <Boton tamanio="sm" onClick={abrirCrearTarea}>
+                <IconoMas className="h-4 w-4" />
+                Nueva tarea
+              </Boton>
+            </div>
+            {tareas.isLoading ? <Cargando etiqueta="Cargando tareas..." /> : null}
+            {tareas.isError ? <EstadoError error={tareas.error} /> : null}
+            {tareas.data ? <TablaTareas tareas={tareas.data} onEditar={abrirEditarTarea} /> : null}
           </div>
-          {cotizaciones.isLoading ? <Cargando etiqueta="Cargando cotizaciones..." /> : null}
-          {cotizaciones.isError ? <EstadoError error={cotizaciones.error} /> : null}
-          {cotizaciones.data && tareas.data ? (
-            <TablaCotizaciones
-              cotizaciones={cotizaciones.data}
-              tareas={tareas.data}
-              onNuevaCotizacion={abrirNuevaCotizacion}
-            />
-          ) : null}
+
+          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Cotizaciones</h2>
+              {tareas.data && tareas.data.length > 0 ? (
+                <Boton tamanio="sm" onClick={() => abrirNuevaCotizacion(tareas.data[0].id)}>
+                  <IconoMas className="h-4 w-4" />
+                  Nueva cotización
+                </Boton>
+              ) : null}
+            </div>
+            {cotizaciones.isLoading ? <Cargando etiqueta="Cargando cotizaciones..." /> : null}
+            {cotizaciones.isError ? <EstadoError error={cotizaciones.error} /> : null}
+            {tareas.data && tareas.data.length === 0 ? (
+              <p className="text-sm text-gray-500">Creá una tarea antes de cargar una cotización.</p>
+            ) : null}
+            {cotizaciones.data && tareas.data && tareas.data.length > 0 ? (
+              <TablaCotizaciones
+                cotizaciones={cotizaciones.data}
+                tareas={tareas.data}
+                onNuevaCotizacion={abrirNuevaCotizacion}
+              />
+            ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -197,6 +226,13 @@ export default function PaginaDetalleProyecto() {
           tareas={tareas.data ?? []}
           tareaIdInicial={tareaIdParaCotizacion}
           onCerrar={() => setModalCotizacionAbierto(false)}
+        />
+      ) : null}
+
+      {modalPropuestaAbierto ? (
+        <ModalPropuestaInversion
+          proyectoId={proyecto.data.id}
+          onCerrar={() => setModalPropuestaAbierto(false)}
         />
       ) : null}
     </div>
