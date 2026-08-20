@@ -198,12 +198,15 @@ export default function PaginaDetalleOrdenCompra() {
           </Boton>
         </div>
         {datos.facturaPdfRuta ? (
-          <BotonAccionFila
-            onClick={() => descargarFactura.mutate({ id: datos.id, numero: datos.numero })}
-            disabled={descargarFactura.isPending}
-          >
-            Descargar factura
-          </BotonAccionFila>
+          <div className="flex flex-col items-start gap-1">
+            <BotonAccionFila
+              onClick={() => descargarFactura.mutate({ id: datos.id, numero: datos.numero })}
+              disabled={descargarFactura.isPending}
+            >
+              Descargar factura
+            </BotonAccionFila>
+            {descargarFactura.error ? <EstadoError error={descargarFactura.error} /> : null}
+          </div>
         ) : (
           <p className="text-sm text-gray-400">Sin factura adjunta</p>
         )}
@@ -236,7 +239,11 @@ export default function PaginaDetalleOrdenCompra() {
           </Boton>
         ) : null}
         {puedeResolverObservacion(datos, usuario) ? (
-          <Boton tamanio="sm" onClick={() => setAccionModal("resolver-observacion")}>
+          <Boton
+            tamanio="sm"
+            disabled={mutacionEnCurso}
+            onClick={() => setAccionModal("resolver-observacion")}
+          >
             Resolver observación
           </Boton>
         ) : null}
@@ -259,7 +266,7 @@ export default function PaginaDetalleOrdenCompra() {
 
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500">Historial</h2>
-        {historial.isLoading ? <Cargando etiqueta="Cargando..." /> : null}
+        {historial.isLoading ? <Cargando etiqueta="Cargando historial..." /> : null}
         {historial.isError ? <EstadoError error={historial.error} /> : null}
         {historial.data ? <HistorialOrdenCompra historial={historial.data} /> : null}
       </div>

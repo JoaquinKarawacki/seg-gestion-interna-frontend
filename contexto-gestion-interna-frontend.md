@@ -413,8 +413,18 @@ Mismo cambio de negocio documentado en `contexto-gestion-interna-backend.md` (se
 - **Gotcha de test confirmado en esta sesión** (aplica a cualquier prueba manual futura del upload de Propuesta de Inversión): el `FileTypeValidator` de Nest en esta versión valida por número mágico real del archivo (librería `file-type`), no por el `Content-Type` que manda el cliente — un archivo de prueba con contenido de texto plano pero extensión `.docx`/`.png` es rechazado igual. Para probar manualmente hace falta un archivo genuino de ese tipo (un PDF real arranca con `%PDF` y sí tiene magic number, por eso nunca se notó este detalle antes con `Cotizacion`).
 - Verificado `tsc --noEmit`/`eslint` sin errores en ambos repos. **No se pudo verificar visualmente en navegador** (Claude in Chrome sigue sin conectar en esta sesión, misma limitación de siempre) — toda la verificación de este cambio fue contra el backend real (`curl` multipart con PDF/Word/imagen genuinos) más `tsc`/`eslint`.
 
-### ⬜ Fase 5 — Pulido
-Dashboard real por rol (mis borradores / pendientes de mi aprobación si ENCARGADO / para pagar si PAGOS — hoy `app/(app)/dashboard/page.tsx` es un placeholder que solo saluda). Estados de carga consistentes, manejo de errores consistente en toda la app, **responsive/mobile** (hoy `EncabezadoApp` no tiene menú mobile, ver Fase 0). Verificación visual real en navegador (pendiente desde la Fase 0 por falta de extensión Chrome conectada).
+### 🟡 Fase 5 — Pulido (mayormente completa, 2026-08-20)
+
+**Corrección sobre lo que decía este documento antes**: el Dashboard real por rol (`TarjetaConteoOC`, secciones por rol en `app/(app)/dashboard/page.tsx`) y el menú hamburguesa mobile de `EncabezadoApp` **ya estaban implementados** desde el commit `b1300e0` ("Fase 3-4 y parte de Fase 5") — este documento nunca se actualizó para reflejarlo. Confirmado con el usuario que el resto de esta sesión solo ataca lo que realmente faltaba, sin retocar eso.
+
+Hecho en esta sesión (auditoría de 2 agentes en paralelo — responsive/mobile, y loading/error — sobre toda la app, con gaps puntuales confirmados y arreglados):
+- **Responsive**: tabs de `/proyectos/[id]` (`overflow-x-auto` + `whitespace-nowrap`, desbordaban en 375-428px con 4 tabs) y el modo edición de "Costo SEG" en `TarjetaComprometido.tsx` (`flex-wrap` en el input+botones, desbordaba la tarjeta).
+- **Loading/error**: `descargarFactura.error` ahora se muestra (antes fallo silencioso) en `/ordenes-compra/[id]`; etiqueta de historial "Cargando..." → "Cargando historial..."; falta `disabled={mutacionEnCurso}` en "Resolver observación"; `TablaUsuarios.tsx` dejó de reimplementar el mensaje de error a mano y de usar `.mutate()` fire-and-forget — ahora usa `EstadoError` (una sola vez arriba de la tabla, `onError` callback desde `AccionesUsuario`) y `mutateAsync`+try/catch, igual que `TablaClientes`/`TablaProveedores`/`TablaSectores`/`TablaProyectos`.
+- **`loading.tsx` nuevos**: `dashboard/loading.tsx` y `ordenes-compra/[id]/loading.tsx` (antes heredaba el `EsqueletoTabla` del padre, un mismatch de layout al ser una tarjeta de detalle, no una tabla) — mismo estilo a medida que `proyectos/[id]/loading.tsx`.
+- **Explícitamente fuera de alcance** (convención ya aceptada, no son bugs de esta fase): el patrón `useMapaX()` sin loading/error individual en filas/celdas (usado en toda la app desde Fase 2), los combos de filtro que quedan momentáneamente vacíos mientras cargan, la inconsistencia `isSubmitting` (formularios) vs. `.isPending` (acciones de fila/modal), y los dos mecanismos de error que conviven en el detalle de OC (a nivel página vs. prop de modal).
+- Verificado `tsc --noEmit`/`eslint` sin errores. **Verificación visual en navegador sigue sin poder hacerse** — Claude in Chrome no conectó tampoco en esta sesión (mismo historial desde Fase 0).
+
+**Lo único que queda de Fase 5**: la primera verificación visual real en navegador (bloqueada por la extensión Chrome).
 
 ---
 

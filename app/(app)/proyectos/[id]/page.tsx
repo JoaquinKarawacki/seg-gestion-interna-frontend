@@ -106,14 +106,14 @@ export default function PaginaDetalleProyecto() {
         </div>
       </div>
 
-      <div className="flex gap-6 border-b border-gray-100">
+      <div className="flex gap-6 overflow-x-auto border-b border-gray-100">
         {TABS.map((valor) => (
           <button
             key={valor}
             type="button"
             onClick={() => setTab(valor)}
             className={clsx(
-              "border-b-2 pb-2.5 text-sm font-semibold transition-colors",
+              "whitespace-nowrap border-b-2 pb-2.5 text-sm font-semibold transition-colors",
               tab === valor ? "border-seg-rojo text-seg-rojo" : "border-transparent text-gray-500 hover:text-gray-700",
             )}
           >

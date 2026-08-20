@@ -37,7 +37,7 @@ function EdicionCostoSeg({ proyecto, valorActual }: { proyecto: Proyecto; valorA
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <input
         type="number"
         step="0.01"
@@ -161,7 +161,7 @@ export function TarjetaComprometido({
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500">Costo SEG</span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <span className="font-medium text-gray-800">{formatearNumero(costoSeg)}</span>
           {costoSegEditable ? <EdicionCostoSeg proyecto={proyecto} valorActual={costoSeg} /> : null}
         </div>
