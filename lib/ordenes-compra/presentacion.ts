@@ -57,6 +57,17 @@ export function puedeEditar(orden: OrdenCompra, usuario: Usuario): boolean {
 
 export const puedeEliminar = puedeEditar;
 
+// Uruguay es UTC-3: toISOString() corre a UTC y adelanta el día entre las
+// 21:00 y las 23:59 hora local. Se arma el string a mano con los getters
+// locales de Date, nunca pasando por UTC.
+export function obtenerFechaLocalDeHoy(): string {
+  const ahora = new Date();
+  const anio = ahora.getFullYear();
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  return `${anio}-${mes}-${dia}`;
+}
+
 export function puedeEnviar(orden: OrdenCompra, usuario: Usuario): boolean {
   return orden.estado === "BORRADOR" && esDeLaOrden(orden, usuario);
 }

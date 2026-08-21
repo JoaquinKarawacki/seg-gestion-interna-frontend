@@ -12,7 +12,7 @@ import { usePropuestasInversionDeProyecto } from "@/lib/propuestas-inversion/hoo
 import { useActualizarProyecto, useRecalcularCostoSegProyecto } from "@/lib/proyectos/hooks";
 import { calcularResumenCostos } from "@/lib/proyectos/presentacion";
 import type { Proyecto } from "@/lib/proyectos/tipos";
-import { useMapaTiposCambio } from "@/lib/tipos-cambio/hooks";
+import { useMapaTiposCambio, useTiposCambio } from "@/lib/tipos-cambio/hooks";
 
 function EdicionCostoSeg({ proyecto, valorActual }: { proyecto: Proyecto; valorActual: number }) {
   const [editando, setEditando] = useState(false);
@@ -72,6 +72,7 @@ export function TarjetaComprometido({
   ordenesCompra: OrdenCompra[] | undefined;
 }) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
+  const tiposCambio = useTiposCambio();
   const mapaTiposCambio = useMapaTiposCambio();
   const propuestas = usePropuestasInversionDeProyecto(proyecto.id);
   const tasas = new Map<Moneda, number>(
@@ -82,7 +83,7 @@ export function TarjetaComprometido({
     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Costos y rentabilidad</h2>
   );
 
-  if (!cotizaciones || !ordenesCompra || !propuestas.data) {
+  if (!cotizaciones || !ordenesCompra || !propuestas.data || !tiposCambio.data) {
     return (
       <div className="flex flex-col gap-2">
         {encabezado}

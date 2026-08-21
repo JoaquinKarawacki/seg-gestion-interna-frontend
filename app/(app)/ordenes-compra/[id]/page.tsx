@@ -223,13 +223,23 @@ export default function PaginaDetalleOrdenCompra() {
             <Boton tamanio="sm" disabled={mutacionEnCurso} onClick={() => aprobar.mutate(datos.id)}>
               Aprobar
             </Boton>
-            <Boton tamanio="sm" variante="outline" onClick={() => setAccionModal("rechazar")}>
+            <Boton
+              tamanio="sm"
+              variante="outline"
+              disabled={mutacionEnCurso}
+              onClick={() => setAccionModal("rechazar")}
+            >
               Rechazar
             </Boton>
           </>
         ) : null}
         {puedeObservarPago(datos, usuario) ? (
-          <Boton tamanio="sm" variante="outline" onClick={() => setAccionModal("observar-pago")}>
+          <Boton
+            tamanio="sm"
+            variante="outline"
+            disabled={mutacionEnCurso}
+            onClick={() => setAccionModal("observar-pago")}
+          >
             Observar pago
           </Boton>
         ) : null}
@@ -248,7 +258,12 @@ export default function PaginaDetalleOrdenCompra() {
           </Boton>
         ) : null}
         {puedeAnular(datos, usuario) ? (
-          <Boton tamanio="sm" variante="outline" onClick={() => setAccionModal("anular")}>
+          <Boton
+            tamanio="sm"
+            variante="outline"
+            disabled={mutacionEnCurso}
+            onClick={() => setAccionModal("anular")}
+          >
             Anular
           </Boton>
         ) : null}

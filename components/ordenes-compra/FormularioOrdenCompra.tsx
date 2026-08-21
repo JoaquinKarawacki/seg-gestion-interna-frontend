@@ -14,7 +14,12 @@ import {
   useCrearOrdenCompra,
   useOrdenesCompraDeCotizacion,
 } from "@/lib/ordenes-compra/hooks";
-import { calcularSaldoDisponible, ETIQUETAS_FORMA_PAGO, ETIQUETAS_TIPO_OC } from "@/lib/ordenes-compra/presentacion";
+import {
+  calcularSaldoDisponible,
+  ETIQUETAS_FORMA_PAGO,
+  ETIQUETAS_TIPO_OC,
+  obtenerFechaLocalDeHoy,
+} from "@/lib/ordenes-compra/presentacion";
 import {
   TAMANO_MAXIMO_ARCHIVO_FACTURA_BYTES,
   TIPO_ARCHIVO_FACTURA_ACEPTADO,
@@ -73,7 +78,7 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
   } = useForm<DatosFormulario>({
     defaultValues: {
       tipo: ordenExistente?.tipo ?? "ARTICULO",
-      fecha: ordenExistente?.fecha.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+      fecha: ordenExistente?.fecha.slice(0, 10) ?? obtenerFechaLocalDeHoy(),
       sectorId: ordenExistente?.sectorId ?? usuario?.sectorId ?? "",
       proveedorId: ordenExistente?.proveedorId ?? "",
       moneda: ordenExistente?.moneda ?? "UYU",

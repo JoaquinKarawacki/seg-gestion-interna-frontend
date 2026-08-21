@@ -13,6 +13,7 @@ export const ENTIDADES_AUDITORIA = [
   "Cotizacion",
   "PropuestaInversion",
   "OrdenCompra",
+  "TipoCambio",
 ] as const;
 
 export const ACCIONES_AUDITORIA = [
@@ -32,6 +33,7 @@ export const ACCIONES_AUDITORIA = [
   "CREAR_PROYECTO",
   "ACTUALIZAR_PROYECTO",
   "ELIMINAR_PROYECTO",
+  "RECALCULAR_COSTO_SEG_PROYECTO",
   "CREAR_TAREA",
   "ACTUALIZAR_TAREA",
   "ELIMINAR_TAREA",
@@ -51,6 +53,7 @@ export const ACCIONES_AUDITORIA = [
   "CONFIRMAR_PAGO_ORDEN_COMPRA",
   "ANULAR_ORDEN_COMPRA",
   "CREAR_COMENTARIO",
+  "ACTUALIZAR_TIPO_CAMBIO",
 ] as const;
 
 export function formatearAccion(accion: string): string {
