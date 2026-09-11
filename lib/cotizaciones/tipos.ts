@@ -8,6 +8,7 @@ export interface Cotizacion {
   proveedorId: string;
   montoTotal: string;
   moneda: Moneda;
+  ivaIncluido: boolean;
   estado: EstadoCotizacion;
   archivoPdfRuta: string | null;
 }
@@ -18,6 +19,7 @@ export interface CrearCotizacionDto {
   proveedorId: string;
   montoTotal: number;
   moneda: Moneda;
+  ivaIncluido: boolean;
   archivo?: File;
 }
 

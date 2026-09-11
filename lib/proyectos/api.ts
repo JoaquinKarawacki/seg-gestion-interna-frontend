@@ -31,11 +31,3 @@ export async function actualizarProyecto(id: string, dto: ActualizarProyectoDto)
 export async function eliminarProyecto(id: string) {
   await peticion<void>(`/proyectos/${id}`, { metodo: "DELETE" });
 }
-
-export async function recalcularCostoSegProyecto(id: string) {
-  const { datos } = await peticion<RespuestaExitosa<Proyecto>>(
-    `/proyectos/${id}/recalcular-costo-seg`,
-    { metodo: "POST" },
-  );
-  return datos;
-}

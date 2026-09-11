@@ -1,40 +1,42 @@
 import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
 import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
-import type { PropuestaInversion } from "@/lib/propuestas-inversion/tipos";
-import type { Proyecto } from "@/lib/proyectos/tipos";
+import type { Tarea } from "@/lib/tareas/tipos";
+
+// IVA general de Uruguay. Fijo porque hoy no hay ningún lado del sistema que
+// permita cargar una tasa distinta (ni en Cotizacion ni en OrdenCompra).
+const TASA_IVA_URUGUAY = 0.22;
 
 export interface ResumenCostosProyecto {
   moneda: Moneda;
   monedasDisponibles: Moneda[];
-  costoAproximado: number | null;
-  honorarios: number | null;
-  costoSegCalculado: number;
-  costoSegManual: number | null;
   costoSeg: number;
-  costoSegEditable: boolean;
-  gastado: number;
-  margenDeEquipo: number | null;
+  ejecucion: number;
 }
 
-// Todas las monedas con actividad en el proyecto: la de la propuesta de
-// inversión activa (si hay) primero, seguida de las de cotizaciones de tarea
-// activas y de órdenes de compra pagadas — en ese orden de aparición, sin
-// repetir. Solo se usa para decidir si hay algo para mostrar (tarjeta vacía o
-// no); el selector de moneda cicla siempre sobre las 3 monedas soportadas por
-// la app.
-export function obtenerMonedasDisponibles(
-  propuestaActiva: PropuestaInversion | null,
-  cotizaciones: Cotizacion[],
-  ordenesCompra: OrdenCompra[],
-): Moneda[] {
+export interface DesgloseProveedorTarea {
+  proveedorId: string;
+  cotizado: number;
+  pagado: number;
+}
+
+export interface DesgloseTarea {
+  tareaId: string;
+  proveedores: DesgloseProveedorTarea[];
+}
+
+// Todas las monedas con actividad en el proyecto: la de cotizaciones de
+// tarea activas primero, seguida de las de órdenes de compra pagadas, en ese
+// orden de aparición, sin repetir. Solo se usa para decidir si hay algo para
+// mostrar (tarjeta vacía o no); el selector de moneda cicla siempre sobre
+// las 3 monedas soportadas por la app.
+export function obtenerMonedasDisponibles(cotizaciones: Cotizacion[], ordenesCompra: OrdenCompra[]): Moneda[] {
   const monedas: Moneda[] = [];
 
   function agregar(moneda: Moneda) {
     if (!monedas.includes(moneda)) monedas.push(moneda);
   }
 
-  if (propuestaActiva) agregar(propuestaActiva.moneda);
   cotizaciones
     .filter((cotizacion) => cotizacion.estado === "ACTIVA")
     .forEach((cotizacion) => agregar(cotizacion.moneda));
@@ -57,61 +59,87 @@ function convertir(monto: number, monedaOrigen: Moneda, monedaDestino: Moneda, t
   return montoEnUyu / obtenerTasaEnUyu(monedaDestino, tasas);
 }
 
-// La propuesta de inversión activa es la moneda "de origen" del override
-// manual de Costo SEG (solo se puede editar mientras se está viendo esa
-// moneda) — en cualquier otra moneda se convierte con las tasas, igual que el
-// resto de los montos. Nada se excluye: todo se convierte a la moneda
-// elegida antes de sumar/restar, así el selector siempre muestra números
-// reales y no ceros.
+// El Costo SEG siempre se toma sin IVA: si la cotización se cargó con el
+// checkbox "Incluye IVA", el monto cargado es el bruto y hay que sacarle la
+// tasa para llegar al neto.
+function calcularMontoNetoCotizacion(cotizacion: Cotizacion): number {
+  const monto = Number(cotizacion.montoTotal);
+  return cotizacion.ivaIncluido ? monto / (1 + TASA_IVA_URUGUAY) : monto;
+}
+
+// Misma idea para la Ejecución, reutilizando los campos ya existentes de
+// OrdenCompra: si no paga IVA, el monto ya es neto; si paga IVA pero el
+// monto no lo incluye (se agrega aparte al pagar), también ya es neto.
+// Solo hay que descontar cuando paga IVA Y el monto cargado lo incluye.
+function calcularMontoNetoOrdenCompra(orden: OrdenCompra): number {
+  const monto = Number(orden.monto);
+  return orden.pagaIva && orden.ivaIncluido ? monto / (1 + TASA_IVA_URUGUAY) : monto;
+}
+
 export function calcularResumenCostos(
-  proyecto: Proyecto,
-  propuestaActiva: PropuestaInversion | null,
   cotizaciones: Cotizacion[],
   ordenesCompra: OrdenCompra[],
   tasas: Map<Moneda, number>,
   monedaSeleccionada?: Moneda,
 ): ResumenCostosProyecto | null {
-  if (obtenerMonedasDisponibles(propuestaActiva, cotizaciones, ordenesCompra).length === 0) return null;
+  if (obtenerMonedasDisponibles(cotizaciones, ordenesCompra).length === 0) return null;
 
-  const moneda = monedaSeleccionada ?? propuestaActiva?.moneda ?? MONEDAS[0];
+  const moneda = monedaSeleccionada ?? MONEDAS[0];
 
-  const costoAproximado = propuestaActiva
-    ? convertir(Number(propuestaActiva.costoTotalAproximado), propuestaActiva.moneda, moneda, tasas)
-    : null;
-  const honorarios = propuestaActiva
-    ? convertir(Number(propuestaActiva.honorarios), propuestaActiva.moneda, moneda, tasas)
-    : null;
-
-  const costoSegCalculado = cotizaciones
+  const costoSeg = cotizaciones
     .filter((cotizacion) => cotizacion.estado === "ACTIVA")
     .reduce(
-      (acc, cotizacion) => acc + convertir(Number(cotizacion.montoTotal), cotizacion.moneda, moneda, tasas),
+      (acc, cotizacion) => acc + convertir(calcularMontoNetoCotizacion(cotizacion), cotizacion.moneda, moneda, tasas),
       0,
     );
 
-  const gastado = ordenesCompra
+  const ejecucion = ordenesCompra
     .filter((orden) => orden.estado === "PAGADO")
-    .reduce((acc, orden) => acc + convertir(Number(orden.monto), orden.moneda, moneda, tasas), 0);
-
-  const costoSegEditable = propuestaActiva?.moneda === moneda;
-  const costoSegManualBase = proyecto.costoSegManual !== null ? Number(proyecto.costoSegManual) : null;
-  const costoSegManual =
-    costoSegManualBase !== null && propuestaActiva
-      ? convertir(costoSegManualBase, propuestaActiva.moneda, moneda, tasas)
-      : costoSegManualBase;
-  const costoSeg = costoSegManual ?? costoSegCalculado;
-  const margenDeEquipo = costoAproximado !== null ? costoAproximado - costoSeg : null;
+    .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenCompra(orden), orden.moneda, moneda, tasas), 0);
 
   return {
     moneda,
     monedasDisponibles: MONEDAS,
-    costoAproximado,
-    honorarios,
-    costoSegCalculado,
-    costoSegManual,
     costoSeg,
-    costoSegEditable,
-    gastado,
-    margenDeEquipo,
+    ejecucion,
   };
+}
+
+// Por cada tarea del proyecto, cuánto se cotizó (neto) vs cuánto se pagó
+// (neto) a cada proveedor involucrado, todo convertido a la moneda elegida.
+export function calcularDesglosePorTarea(
+  tareas: Tarea[],
+  cotizaciones: Cotizacion[],
+  ordenesCompra: OrdenCompra[],
+  tasas: Map<Moneda, number>,
+  moneda: Moneda,
+): DesgloseTarea[] {
+  return tareas.map((tarea) => {
+    const cotizacionesDeTarea = cotizaciones.filter(
+      (cotizacion) => cotizacion.tareaId === tarea.id && cotizacion.estado === "ACTIVA",
+    );
+    const ordenesDeTarea = ordenesCompra.filter((orden) => orden.tareaId === tarea.id && orden.estado === "PAGADO");
+
+    const proveedorIds = new Set([
+      ...cotizacionesDeTarea.map((cotizacion) => cotizacion.proveedorId),
+      ...ordenesDeTarea.map((orden) => orden.proveedorId),
+    ]);
+
+    const proveedores = Array.from(proveedorIds).map((proveedorId) => {
+      const cotizado = cotizacionesDeTarea
+        .filter((cotizacion) => cotizacion.proveedorId === proveedorId)
+        .reduce(
+          (acc, cotizacion) =>
+            acc + convertir(calcularMontoNetoCotizacion(cotizacion), cotizacion.moneda, moneda, tasas),
+          0,
+        );
+      const pagado = ordenesDeTarea
+        .filter((orden) => orden.proveedorId === proveedorId)
+        .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenCompra(orden), orden.moneda, moneda, tasas), 0);
+
+      return { proveedorId, cotizado, pagado };
+    });
+
+    return { tareaId: tarea.id, proveedores };
+  });
 }

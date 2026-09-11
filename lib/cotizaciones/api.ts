@@ -21,6 +21,7 @@ export async function crearCotizacion(dto: CrearCotizacionDto) {
   formData.set("proveedorId", dto.proveedorId);
   formData.set("montoTotal", String(dto.montoTotal));
   formData.set("moneda", dto.moneda);
+  formData.set("ivaIncluido", String(dto.ivaIncluido));
   if (dto.archivo) formData.set("archivo", dto.archivo);
 
   const { datos } = await peticion<RespuestaExitosa<Cotizacion>>("/cotizaciones", {

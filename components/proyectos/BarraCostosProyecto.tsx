@@ -5,22 +5,13 @@ import { formatearNumero } from "@/lib/cotizaciones/presentacion";
 // Comparación de magnitudes (no de categorías) — mismo criterio secuencial de
 // un solo tono que ya usaba BarraComprometido: más oscuro = más monto.
 const FILAS = [
-  { clave: "costoCliente", etiqueta: "Costo cliente", clase: "bg-seg-rojo-profundo" },
   { clave: "costoSeg", etiqueta: "Costo SEG", clase: "bg-seg-rojo-oscuro" },
-  { clave: "gastado", etiqueta: "Gastado", clase: "bg-seg-rojo" },
+  { clave: "ejecucion", etiqueta: "Ejecución", clase: "bg-seg-rojo" },
 ] as const;
 
-export function BarraCostosProyecto({
-  costoCliente,
-  costoSeg,
-  gastado,
-}: {
-  costoCliente: number;
-  costoSeg: number;
-  gastado: number;
-}) {
-  const valores = { costoCliente, costoSeg, gastado };
-  const maximo = Math.max(costoCliente, costoSeg, gastado, 1);
+export function BarraCostosProyecto({ costoSeg, ejecucion }: { costoSeg: number; ejecucion: number }) {
+  const valores = { costoSeg, ejecucion };
+  const maximo = Math.max(costoSeg, ejecucion, 1);
 
   return (
     <ul className="flex flex-col gap-2">

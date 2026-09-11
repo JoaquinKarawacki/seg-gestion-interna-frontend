@@ -21,6 +21,7 @@ interface DatosFormulario {
   proveedorId: string;
   montoTotal: string;
   moneda: Moneda;
+  ivaIncluido: boolean;
   archivo: FileList | undefined;
 }
 
@@ -48,6 +49,7 @@ export function ModalCotizacion({
       proveedorId: "",
       montoTotal: "",
       moneda: "UYU",
+      ivaIncluido: false,
     },
   });
 
@@ -68,6 +70,7 @@ export function ModalCotizacion({
       proveedorId: datos.proveedorId,
       montoTotal: Number(datos.montoTotal),
       moneda: datos.moneda,
+      ivaIncluido: datos.ivaIncluido,
       archivo: datos.archivo?.[0],
     });
     onCerrar();
@@ -119,6 +122,10 @@ export function ModalCotizacion({
             ))}
           </Select>
         </div>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("ivaIncluido")} />
+          Incluye IVA
+        </label>
         <Campo
           etiqueta="PDF de la cotización (opcional)"
           type="file"

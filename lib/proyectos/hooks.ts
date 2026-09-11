@@ -5,7 +5,6 @@ import {
   eliminarProyecto,
   listarProyectos,
   obtenerProyecto,
-  recalcularCostoSegProyecto,
 } from "@/lib/proyectos/api";
 import type { ActualizarProyectoDto, CrearProyectoDto } from "@/lib/proyectos/tipos";
 
@@ -35,14 +34,6 @@ export function useActualizarProyecto(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: ActualizarProyectoDto) => actualizarProyecto(id, dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [CLAVE_PROYECTOS] }),
-  });
-}
-
-export function useRecalcularCostoSegProyecto(id: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => recalcularCostoSegProyecto(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [CLAVE_PROYECTOS] }),
   });
 }
