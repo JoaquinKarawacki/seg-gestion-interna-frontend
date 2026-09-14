@@ -103,7 +103,7 @@ export default function PaginaDashboard() {
 
       <div className="flex flex-wrap gap-3">
         <BotonLink variante="outline" tamanio="sm" href="/ordenes-compra">
-          Ver Órdenes de Compra
+          Ver Órdenes de Pago
         </BotonLink>
         <BotonLink variante="outline" tamanio="sm" href="/proyectos">
           Ver Proyectos

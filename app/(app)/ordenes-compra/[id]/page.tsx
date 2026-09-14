@@ -85,7 +85,7 @@ export default function PaginaDetalleOrdenCompra() {
   const [accionModal, setAccionModal] = useState<AccionModal>(null);
   const [errorEliminar, setErrorEliminar] = useState<unknown>(null);
 
-  if (orden.isLoading) return <Cargando etiqueta="Cargando orden de compra..." />;
+  if (orden.isLoading) return <Cargando etiqueta="Cargando orden de pago..." />;
   if (orden.isError) return <EstadoError error={orden.error} />;
   if (!orden.data || !usuario) return null;
 
@@ -105,7 +105,7 @@ export default function PaginaDetalleOrdenCompra() {
   }
 
   async function manejarEliminar() {
-    if (!window.confirm(`¿Eliminar la orden de compra #${datos.numero}?`)) return;
+    if (!window.confirm(`¿Eliminar la orden de pago #${datos.numero}?`)) return;
     setErrorEliminar(null);
     try {
       await eliminar.mutateAsync(datos.id);
@@ -122,10 +122,10 @@ export default function PaginaDetalleOrdenCompra() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 animate-[fade-in_200ms_ease-out]">
       <div>
         <Link href="/ordenes-compra" className="text-sm text-gray-500 hover:text-seg-rojo">
-          ← Órdenes de Compra
+          ← Órdenes de Pago
         </Link>
         <div className="mt-1 flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">Orden de compra #{datos.numero}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Orden de pago #{datos.numero}</h1>
           <Insignia tono={TONO_ESTADO_OC[datos.estado]}>{ETIQUETAS_ESTADO_OC[datos.estado]}</Insignia>
         </div>
       </div>
@@ -293,7 +293,7 @@ export default function PaginaDetalleOrdenCompra() {
 
       {accionModal === "rechazar" ? (
         <ModalMotivoTransicion
-          titulo="Rechazar orden de compra"
+          titulo="Rechazar orden de pago"
           motivoRequerido
           cargando={rechazar.isPending}
           error={rechazar.error}
@@ -323,7 +323,7 @@ export default function PaginaDetalleOrdenCompra() {
       ) : null}
       {accionModal === "anular" ? (
         <ModalMotivoTransicion
-          titulo="Anular orden de compra"
+          titulo="Anular orden de pago"
           motivoRequerido
           cargando={anular.isPending}
           error={anular.error}

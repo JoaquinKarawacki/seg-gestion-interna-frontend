@@ -28,7 +28,7 @@ type Tab = (typeof TABS)[number];
 const ETIQUETAS_TAB: Record<Tab, string> = {
   resumen: "Resumen",
   cotizaciones: "Cotizaciones",
-  "ordenes-compra": "Órdenes de Compra",
+  "ordenes-compra": "Órdenes de Pago",
 };
 
 export default function PaginaDetalleProyecto() {
@@ -173,13 +173,13 @@ export default function PaginaDetalleProyecto() {
       {tab === "ordenes-compra" ? (
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Compra</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Pago</h2>
             <BotonLink tamanio="sm" href="/ordenes-compra/nueva">
               <IconoMas className="h-4 w-4" />
-              Nueva orden de compra
+              Nueva orden de pago
             </BotonLink>
           </div>
-          {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de compra..." /> : null}
+          {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de pago..." /> : null}
           {ordenesCompra.isError ? <EstadoError error={ordenesCompra.error} /> : null}
           {ordenesCompra.data && tareas.data ? (
             <TablaOrdenesCompraProyecto ordenes={ordenesCompra.data} tareas={tareas.data} />

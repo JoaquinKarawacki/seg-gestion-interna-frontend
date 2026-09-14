@@ -30,7 +30,7 @@ export default function PaginaClientes() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-          <p className="text-sm text-gray-500">Clientes con proyectos u órdenes de compra asociadas.</p>
+          <p className="text-sm text-gray-500">Clientes con proyectos u órdenes de pago asociadas.</p>
         </div>
         <Boton tamanio="sm" onClick={abrirCrear}>
           <IconoMas className="h-4 w-4" />

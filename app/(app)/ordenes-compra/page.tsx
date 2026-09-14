@@ -76,7 +76,7 @@ export default function PaginaOrdenesCompra() {
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10 animate-[fade-in_200ms_ease-out]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Órdenes de Compra</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Órdenes de Pago</h1>
           <p className="text-sm text-gray-500">Solicitudes de pago a proveedores.</p>
         </div>
         <Link
@@ -84,7 +84,7 @@ export default function PaginaOrdenesCompra() {
           className="inline-flex items-center gap-2 rounded-full bg-seg-rojo px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-seg-rojo-oscuro"
         >
           <IconoMas className="h-4 w-4" />
-          Nueva orden de compra
+          Nueva orden de pago
         </Link>
       </div>
 
@@ -150,7 +150,7 @@ export default function PaginaOrdenesCompra() {
         </div>
       </div>
 
-      {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de compra..." /> : null}
+      {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de pago..." /> : null}
       {ordenesCompra.isError ? <EstadoError error={ordenesCompra.error} /> : null}
       {!ordenesCompra.isLoading && !ordenesCompra.isError ? (
         <>

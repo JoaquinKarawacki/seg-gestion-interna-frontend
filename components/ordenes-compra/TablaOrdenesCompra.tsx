@@ -24,7 +24,7 @@ export function TablaOrdenesCompra({
   if (ordenes.length === 0) {
     return (
       <EstadoVacio
-        titulo={hayFiltrosActivos ? "No hay órdenes que coincidan" : "No hay órdenes de compra registradas"}
+        titulo={hayFiltrosActivos ? "No hay órdenes que coincidan" : "No hay órdenes de pago registradas"}
         descripcion={hayFiltrosActivos ? "Probá ajustar los filtros." : undefined}
       />
     );

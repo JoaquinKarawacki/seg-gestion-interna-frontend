@@ -15,14 +15,14 @@ export default function PaginaEditarOrdenCompra() {
   const { usuario } = useAuth();
   const orden = useOrdenCompra(id);
 
-  if (orden.isLoading) return <Cargando etiqueta="Cargando orden de compra..." />;
+  if (orden.isLoading) return <Cargando etiqueta="Cargando orden de pago..." />;
   if (orden.isError) return <EstadoError error={orden.error} />;
   if (!orden.data || !usuario) return null;
 
   if (!puedeEditar(orden.data, usuario)) {
     return (
       <EstadoVacio
-        titulo="No podés editar esta orden de compra"
+        titulo="No podés editar esta orden de pago"
         descripcion="Solo se puede editar mientras está en borrador, y solo el solicitante, alguien del mismo sector o un administrador."
       />
     );
@@ -32,9 +32,9 @@ export default function PaginaEditarOrdenCompra() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 animate-[fade-in_200ms_ease-out]">
       <div>
         <Link href={`/ordenes-compra/${id}`} className="text-sm text-gray-500 hover:text-seg-rojo">
-          ← Orden de compra #{orden.data.numero}
+          ← Orden de pago #{orden.data.numero}
         </Link>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900">Editar orden de compra</h1>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900">Editar orden de pago</h1>
       </div>
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <FormularioOrdenCompra ordenExistente={orden.data} />

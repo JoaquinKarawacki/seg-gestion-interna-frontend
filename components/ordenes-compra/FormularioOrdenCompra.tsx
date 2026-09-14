@@ -320,7 +320,7 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
       ) : null}
 
       <Boton type="submit" disabled={isSubmitting} className="self-start">
-        {ordenExistente ? "Guardar cambios" : "Crear orden de compra"}
+        {ordenExistente ? "Guardar cambios" : "Crear orden de pago"}
       </Boton>
     </form>
   );

@@ -28,7 +28,7 @@ export function TablaOrdenesCompraProyecto({
     .filter((grupo) => grupo.ordenes.length > 0);
 
   if (grupos.length === 0) {
-    return <EstadoVacio titulo="Todavía no hay órdenes de compra en este proyecto" />;
+    return <EstadoVacio titulo="Todavía no hay órdenes de pago en este proyecto" />;
   }
 
   return (
