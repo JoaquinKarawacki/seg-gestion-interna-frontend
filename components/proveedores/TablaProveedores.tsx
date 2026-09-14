@@ -12,10 +12,12 @@ import type { Proveedor } from "@/lib/proveedores/tipos";
 
 export function TablaProveedores({
   proveedores,
+  hayFiltrosActivos,
   puedeEditar,
   onEditar,
 }: {
   proveedores: Proveedor[];
+  hayFiltrosActivos: boolean;
   puedeEditar: boolean;
   onEditar: (proveedor: Proveedor) => void;
 }) {
@@ -33,7 +35,12 @@ export function TablaProveedores({
   }
 
   if (proveedores.length === 0) {
-    return <EstadoVacio titulo="No hay proveedores registrados" />;
+    return (
+      <EstadoVacio
+        titulo={hayFiltrosActivos ? "No hay proveedores que coincidan" : "No hay proveedores registrados"}
+        descripcion={hayFiltrosActivos ? "Probá ajustar la búsqueda." : undefined}
+      />
+    );
   }
 
   return (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth/contexto";
 import { ModalProveedor } from "@/components/proveedores/ModalProveedor";
 import { TablaProveedores } from "@/components/proveedores/TablaProveedores";
 import { Boton } from "@/components/ui/Boton";
+import { Campo } from "@/components/ui/Campo";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { IconoMas } from "@/components/ui/Iconos";
@@ -18,7 +19,19 @@ export default function PaginaProveedores() {
   const proveedores = useProveedores();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proveedorEditando, setProveedorEditando] = useState<Proveedor | null>(null);
+  const [busqueda, setBusqueda] = useState("");
   const puedeEditar = Boolean(usuario && ROLES_EDICION.includes(usuario.rol));
+
+  const proveedoresFiltrados = useMemo(() => {
+    if (!proveedores.data) return [];
+    const busquedaNormalizada = busqueda.trim().toLowerCase();
+    return proveedores.data.filter(
+      (proveedor) =>
+        proveedor.nombre.toLowerCase().includes(busquedaNormalizada) ||
+        proveedor.rut.toLowerCase().includes(busquedaNormalizada),
+    );
+  }, [proveedores.data, busqueda]);
+  const hayFiltrosActivos = busqueda.trim() !== "";
 
   function abrirCrear() {
     setProveedorEditando(null);
@@ -43,11 +56,23 @@ export default function PaginaProveedores() {
         </Boton>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-1 min-w-[240px]">
+          <Campo
+            etiqueta="Buscar"
+            placeholder="Nombre o RUT del proveedor..."
+            value={busqueda}
+            onChange={(evento) => setBusqueda(evento.target.value)}
+          />
+        </div>
+      </div>
+
       {proveedores.isLoading ? <Cargando etiqueta="Cargando proveedores..." /> : null}
       {proveedores.isError ? <EstadoError error={proveedores.error} /> : null}
       {proveedores.data ? (
         <TablaProveedores
-          proveedores={proveedores.data}
+          proveedores={proveedoresFiltrados}
+          hayFiltrosActivos={hayFiltrosActivos}
           puedeEditar={puedeEditar}
           onEditar={abrirEditar}
         />

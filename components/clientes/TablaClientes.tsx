@@ -11,9 +11,11 @@ import type { Cliente } from "@/lib/clientes/tipos";
 
 export function TablaClientes({
   clientes,
+  hayFiltrosActivos,
   onEditar,
 }: {
   clientes: Cliente[];
+  hayFiltrosActivos: boolean;
   onEditar: (cliente: Cliente) => void;
 }) {
   const eliminarCliente = useEliminarCliente();
@@ -30,7 +32,12 @@ export function TablaClientes({
   }
 
   if (clientes.length === 0) {
-    return <EstadoVacio titulo="No hay clientes registrados" />;
+    return (
+      <EstadoVacio
+        titulo={hayFiltrosActivos ? "No hay clientes que coincidan" : "No hay clientes registrados"}
+        descripcion={hayFiltrosActivos ? "Probá ajustar la búsqueda." : undefined}
+      />
+    );
   }
 
   return (

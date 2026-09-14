@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ModalCliente } from "@/components/clientes/ModalCliente";
 import { TablaClientes } from "@/components/clientes/TablaClientes";
 import { Boton } from "@/components/ui/Boton";
+import { Campo } from "@/components/ui/Campo";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { IconoMas } from "@/components/ui/Iconos";
@@ -14,6 +15,18 @@ export default function PaginaClientes() {
   const clientes = useClientes();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+
+  const clientesFiltrados = useMemo(() => {
+    if (!clientes.data) return [];
+    const busquedaNormalizada = busqueda.trim().toLowerCase();
+    return clientes.data.filter(
+      (cliente) =>
+        cliente.nombre.toLowerCase().includes(busquedaNormalizada) ||
+        cliente.rut.toLowerCase().includes(busquedaNormalizada),
+    );
+  }, [clientes.data, busqueda]);
+  const hayFiltrosActivos = busqueda.trim() !== "";
 
   function abrirCrear() {
     setClienteEditando(null);
@@ -38,9 +51,22 @@ export default function PaginaClientes() {
         </Boton>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-1 min-w-[240px]">
+          <Campo
+            etiqueta="Buscar"
+            placeholder="Nombre o RUT del cliente..."
+            value={busqueda}
+            onChange={(evento) => setBusqueda(evento.target.value)}
+          />
+        </div>
+      </div>
+
       {clientes.isLoading ? <Cargando etiqueta="Cargando clientes..." /> : null}
       {clientes.isError ? <EstadoError error={clientes.error} /> : null}
-      {clientes.data ? <TablaClientes clientes={clientes.data} onEditar={abrirEditar} /> : null}
+      {clientes.data ? (
+        <TablaClientes clientes={clientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} onEditar={abrirEditar} />
+      ) : null}
 
       {modalAbierto ? (
         <ModalCliente cliente={clienteEditando} onCerrar={() => setModalAbierto(false)} />
