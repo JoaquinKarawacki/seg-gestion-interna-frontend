@@ -41,7 +41,7 @@ export default function PaginaLogin() {
             className="mx-auto mb-4 h-20 w-auto"
             priority
           />
-          <h1 className="text-3xl font-bold text-gray-900">Gestión Interna</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Pagos</h1>
           <div className="mx-auto mt-4 h-1 w-16 rounded bg-seg-rojo" />
         </div>
 

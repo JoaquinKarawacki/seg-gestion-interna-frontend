@@ -39,7 +39,7 @@ export function EncabezadoApp() {
   return (
     <header className="sticky top-0 z-40">
       <div className="bg-seg-rojo py-2 text-center text-xs text-white sm:text-sm">
-        SEG Ingeniería — Gestión Interna
+        SEG Ingeniería — Gestión de Pagos
       </div>
       <div className="bg-black">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4">

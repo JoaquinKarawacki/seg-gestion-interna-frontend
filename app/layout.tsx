@@ -12,8 +12,8 @@ const redHatDisplay = Red_Hat_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Gestión Interna — SEG Ingeniería",
-  description: "Panel de gestión interna de SEG Ingeniería",
+  title: "Gestión de Pagos — SEG Ingeniería",
+  description: "Panel de gestión de pagos de SEG Ingeniería",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
