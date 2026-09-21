@@ -21,7 +21,7 @@ export interface ActualizarUsuarioDto {
   nombre?: string;
   email?: string;
   rol?: RolUsuario;
-  sectorId?: string;
+  sectorId?: string | null;
   activo?: boolean;
 }
 

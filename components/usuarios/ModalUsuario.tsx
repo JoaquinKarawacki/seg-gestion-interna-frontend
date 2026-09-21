@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Campo } from "@/components/ui/Campo";
 import { Select } from "@/components/ui/Select";
 import { Boton } from "@/components/ui/Boton";
+import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { useSectores } from "@/lib/sectores/hooks";
 import { useActualizarUsuario, useCrearUsuario } from "@/lib/usuarios/hooks";
@@ -49,9 +50,11 @@ export function ModalUsuario({
   });
 
   async function alEnviar(datos: DatosFormulario) {
-    const sectorId = datos.sectorId === SIN_SECTOR ? undefined : datos.sectorId;
-
     if (usuario) {
+      // null explícito (no undefined): así el PATCH realmente limpia el sector
+      // cuando se elige "— Sin sector —", en vez de dejar el valor anterior
+      // sin tocar (undefined se pierde al serializar y el backend lo ignora).
+      const sectorId = datos.sectorId === SIN_SECTOR ? null : datos.sectorId;
       await actualizarUsuario.mutateAsync({
         nombre: datos.nombre,
         email: datos.email,
@@ -59,6 +62,7 @@ export function ModalUsuario({
         sectorId,
       });
     } else {
+      const sectorId = datos.sectorId === SIN_SECTOR ? undefined : datos.sectorId;
       await crearUsuario.mutateAsync({
         nombre: datos.nombre,
         email: datos.email,
@@ -72,47 +76,51 @@ export function ModalUsuario({
 
   return (
     <Modal titulo={usuario ? "Editar usuario" : "Nuevo usuario"} abierto onCerrar={onCerrar}>
-      <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
-        {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
-        <Campo etiqueta="Nombre" error={errors.nombre?.message} {...register("nombre", { required: "Requerido" })} />
-        <Campo
-          etiqueta="Email"
-          type="email"
-          error={errors.email?.message}
-          {...register("email", { required: "Requerido" })}
-        />
-        {!usuario ? (
+      {sectores.isLoading ? <Cargando etiqueta="Cargando..." /> : null}
+      {sectores.isError ? <EstadoError error={sectores.error} /> : null}
+      {sectores.data ? (
+        <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
+          {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
+          <Campo etiqueta="Nombre" error={errors.nombre?.message} {...register("nombre", { required: "Requerido" })} />
           <Campo
-            etiqueta="Contraseña provisoria"
-            type="password"
-            error={errors.contrasena?.message}
-            {...register("contrasena", {
-              required: "Requerido",
-              minLength: { value: 8, message: "Mínimo 8 caracteres" },
-            })}
+            etiqueta="Email"
+            type="email"
+            error={errors.email?.message}
+            {...register("email", { required: "Requerido" })}
           />
-        ) : null}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Select etiqueta="Rol" error={errors.rol?.message} {...register("rol")}>
-            {Object.entries(ETIQUETAS_ROL).map(([valor, etiqueta]) => (
-              <option key={valor} value={valor}>
-                {etiqueta}
-              </option>
-            ))}
-          </Select>
-          <Select etiqueta="Sector" error={errors.sectorId?.message} {...register("sectorId")}>
-            <option value={SIN_SECTOR}>— Sin sector —</option>
-            {sectores.data?.map((sector) => (
-              <option key={sector.id} value={sector.id}>
-                {sector.nombre}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <Boton type="submit" disabled={isSubmitting} className="self-start">
-          {usuario ? "Guardar cambios" : "Crear usuario"}
-        </Boton>
-      </form>
+          {!usuario ? (
+            <Campo
+              etiqueta="Contraseña provisoria"
+              type="password"
+              error={errors.contrasena?.message}
+              {...register("contrasena", {
+                required: "Requerido",
+                minLength: { value: 8, message: "Mínimo 8 caracteres" },
+              })}
+            />
+          ) : null}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select etiqueta="Rol" error={errors.rol?.message} {...register("rol")}>
+              {Object.entries(ETIQUETAS_ROL).map(([valor, etiqueta]) => (
+                <option key={valor} value={valor}>
+                  {etiqueta}
+                </option>
+              ))}
+            </Select>
+            <Select etiqueta="Sector" error={errors.sectorId?.message} {...register("sectorId")}>
+              <option value={SIN_SECTOR}>— Sin sector —</option>
+              {sectores.data.map((sector) => (
+                <option key={sector.id} value={sector.id}>
+                  {sector.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Boton type="submit" disabled={isSubmitting} className="self-start">
+            {usuario ? "Guardar cambios" : "Crear usuario"}
+          </Boton>
+        </form>
+      ) : null}
     </Modal>
   );
 }
