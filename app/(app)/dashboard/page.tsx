@@ -10,6 +10,13 @@ export default function PaginaDashboard() {
 
   if (!usuario) return null;
 
+  // Unión de sectores donde el usuario puede aprobar — normalmente coincide
+  // con sectoresEncargado, pero también contempla el caso legacy donde solo
+  // se seteó el sector de perfil.
+  const sectoresAprobables = [
+    ...new Set([usuario.sectorId, ...usuario.sectoresEncargado].filter((id): id is string => Boolean(id))),
+  ].join(",") || undefined;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 animate-[fade-in_200ms_ease-out]">
       <div className="mb-10">
@@ -44,17 +51,17 @@ export default function PaginaDashboard() {
             <TarjetaConteoOC
               etiqueta="Pendientes de mi aprobación"
               icono={<IconoReloj className="h-5 w-5" />}
-              filtrosA={{ estado: "PENDIENTE", sectorId: usuario.sectorId ?? undefined }}
+              filtrosA={{ estado: "PENDIENTE", sectorId: sectoresAprobables }}
             />
             <TarjetaConteoOC
               etiqueta="En consulta"
               icono={<IconoDocumento className="h-5 w-5" />}
-              filtrosA={{ estado: "EN_CONSULTA", sectorId: usuario.sectorId ?? undefined }}
+              filtrosA={{ estado: "EN_CONSULTA", sectorId: sectoresAprobables }}
             />
             <TarjetaConteoOC
               etiqueta="Aprobadas, esperando pago"
               icono={<IconoCheck className="h-5 w-5" />}
-              filtrosA={{ estado: "APROBADO", sectorId: usuario.sectorId ?? undefined }}
+              filtrosA={{ estado: "APROBADO", sectorId: sectoresAprobables }}
             />
           </>
         ) : null}

@@ -7,6 +7,7 @@ export interface Usuario {
   rol: RolUsuario;
   activo: boolean;
   sectorId: string | null;
+  sectoresEncargadoIds: string[];
 }
 
 export interface CrearUsuarioDto {
@@ -15,6 +16,7 @@ export interface CrearUsuarioDto {
   contrasena: string;
   rol: RolUsuario;
   sectorId?: string;
+  sectoresEncargadoIds?: string[];
 }
 
 export interface ActualizarUsuarioDto {
@@ -23,6 +25,7 @@ export interface ActualizarUsuarioDto {
   rol?: RolUsuario;
   sectorId?: string | null;
   activo?: boolean;
+  sectoresEncargadoIds?: string[];
 }
 
 export interface CambiarContrasenaPropiaDto {

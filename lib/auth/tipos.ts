@@ -6,6 +6,7 @@ export interface Usuario {
   email: string;
   rol: RolUsuario;
   sectorId: string | null;
+  sectoresEncargado: string[];
 }
 
 export interface CredencialesLogin {
@@ -23,5 +24,6 @@ export interface PayloadJwt {
   email: string;
   rol: RolUsuario;
   sectorId: string | null;
+  sectoresEncargado: string[];
   exp?: number;
 }

@@ -43,10 +43,14 @@ export const TONO_ESTADO_OC: Record<EstadoOC, TonoInsignia> = {
 // backend a propósito (el backend no chequea pertenencia ahí, decisión tomada con
 // el usuario de igualar el criterio de editar/eliminar).
 
+function esEncargadoDelSector(orden: OrdenCompra, usuario: Usuario): boolean {
+  return usuario.sectoresEncargado.includes(orden.sectorId);
+}
+
 function esDeLaOrden(orden: OrdenCompra, usuario: Usuario): boolean {
   return (
     usuario.id === orden.solicitanteId ||
-    usuario.sectorId === orden.sectorId ||
+    esEncargadoDelSector(orden, usuario) ||
     usuario.rol === "ADMIN"
   );
 }
@@ -73,7 +77,7 @@ export function puedeEnviar(orden: OrdenCompra, usuario: Usuario): boolean {
 }
 
 export function puedeAprobarORechazar(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "PENDIENTE" && usuario.rol === "ENCARGADO" && usuario.sectorId === orden.sectorId;
+  return orden.estado === "PENDIENTE" && usuario.rol === "ENCARGADO" && esEncargadoDelSector(orden, usuario);
 }
 
 export function puedeObservarPago(orden: OrdenCompra, usuario: Usuario): boolean {
@@ -93,7 +97,7 @@ const ESTADOS_ANULABLES: EstadoOC[] = ["BORRADOR", "PENDIENTE", "EN_CONSULTA", "
 export function puedeAnular(orden: OrdenCompra, usuario: Usuario): boolean {
   if (!ESTADOS_ANULABLES.includes(orden.estado)) return false;
   if (usuario.rol === "ADMIN") return true;
-  if (usuario.rol === "ENCARGADO") return usuario.sectorId === orden.sectorId;
+  if (usuario.rol === "ENCARGADO") return esEncargadoDelSector(orden, usuario);
   return false;
 }
 

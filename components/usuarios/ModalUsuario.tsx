@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Modal } from "@/components/ui/Modal";
 import { Campo } from "@/components/ui/Campo";
 import { Select } from "@/components/ui/Select";
@@ -21,6 +21,7 @@ interface DatosFormulario {
   contrasena: string;
   rol: RolUsuario;
   sectorId: string;
+  sectoresEncargadoIds: string[];
 }
 
 export function ModalUsuario({
@@ -38,6 +39,7 @@ export function ModalUsuario({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     defaultValues: {
@@ -46,10 +48,18 @@ export function ModalUsuario({
       contrasena: "",
       rol: usuario?.rol ?? "SOLICITANTE",
       sectorId: usuario?.sectorId ?? SIN_SECTOR,
+      sectoresEncargadoIds: usuario?.sectoresEncargadoIds ?? [],
     },
   });
 
+  const rolSeleccionado = useWatch({ control, name: "rol" });
+
   async function alEnviar(datos: DatosFormulario) {
+    // Solo tiene sentido para ENCARGADO — si se cambia el rol a otro, no
+    // manda sectores de aprobación aunque hayan quedado tildados de antes.
+    const sectoresEncargadoIds =
+      datos.rol === "ENCARGADO" ? datos.sectoresEncargadoIds : [];
+
     if (usuario) {
       // null explícito (no undefined): así el PATCH realmente limpia el sector
       // cuando se elige "— Sin sector —", en vez de dejar el valor anterior
@@ -60,6 +70,7 @@ export function ModalUsuario({
         email: datos.email,
         rol: datos.rol,
         sectorId,
+        sectoresEncargadoIds,
       });
     } else {
       const sectorId = datos.sectorId === SIN_SECTOR ? undefined : datos.sectorId;
@@ -69,6 +80,7 @@ export function ModalUsuario({
         contrasena: datos.contrasena,
         rol: datos.rol,
         sectorId,
+        sectoresEncargadoIds,
       });
     }
     onCerrar();
@@ -116,6 +128,26 @@ export function ModalUsuario({
               ))}
             </Select>
           </div>
+          {rolSeleccionado === "ENCARGADO" ? (
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="text-sm font-medium text-gray-700">
+                Sectores que puede aprobar
+              </legend>
+              <div className="flex flex-col gap-2 rounded-lg border border-gray-200 p-3">
+                {sectores.data.map((sector) => (
+                  <label key={sector.id} className="flex items-center gap-2 text-sm text-gray-900">
+                    <input
+                      type="checkbox"
+                      value={sector.id}
+                      className="accent-seg-rojo"
+                      {...register("sectoresEncargadoIds")}
+                    />
+                    {sector.nombre}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
           <Boton type="submit" disabled={isSubmitting} className="self-start">
             {usuario ? "Guardar cambios" : "Crear usuario"}
           </Boton>

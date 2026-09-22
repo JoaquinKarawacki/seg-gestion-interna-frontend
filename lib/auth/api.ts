@@ -24,12 +24,17 @@ export async function iniciarSesion(
     conAuth: false,
   });
 
-  // El login no devuelve sectorId, pero el JWT sí lo lleva — se necesita para
-  // mostrar/ocultar acciones de aprobación por sector en la UI.
+  // El login no devuelve sectorId ni sectoresEncargado, pero el JWT sí los
+  // lleva — se necesitan para mostrar/ocultar acciones de aprobación por
+  // sector en la UI.
   const payload = jwtDecode<PayloadJwt>(respuesta.datos.token);
 
   return {
     token: respuesta.datos.token,
-    usuario: { ...respuesta.datos.usuario, sectorId: payload.sectorId },
+    usuario: {
+      ...respuesta.datos.usuario,
+      sectorId: payload.sectorId,
+      sectoresEncargado: payload.sectoresEncargado,
+    },
   };
 }
