@@ -74,7 +74,7 @@ Relevado exhaustivamente en sesión (ver también `contexto-gestion-interna-back
 - **Envoltorio de lista**: `{ datos: T[], total, pagina, porPagina }` — **sin paginación real** (ver arriba). Ver `RespuestaLista<T>`.
 - **Errores**: shape propio del filtro global, siempre `{ error: string, mensaje: string }` (código + mensaje en español ya armado, mensajes de validación ya joineados con `"; "` server-side). **Excepción**: errores de `ParseFilePipe` (validación de PDF en uploads) pueden no pasar por el filtro custom y traer el shape default de Nest (`{ message: string | string[] }`). El cliente HTTP (`lib/http/cliente.ts`) ya maneja ambos casos.
 - **Roles**: `SOLICITANTE | ENCARGADO | PAGOS | ADMIN`.
-- **JWT**: payload `{ sub, email, rol, sectorId, iat, exp }`. La respuesta de `POST /auth/login` **no** incluye `sectorId` en `usuario` — el frontend lo extrae decodificando el JWT (`jwt-decode`, ver `lib/auth/api.ts`).
+- **JWT**: payload `{ sub, email, rol, sectorId, sectoresEncargado, iat, exp }` (`sectoresEncargado` agregado 2026-09-22, ver sección dedicada más abajo). La respuesta de `POST /auth/login` **no** incluye `sectorId`/`sectoresEncargado` en `usuario` — el frontend los extrae decodificando el JWT (`jwt-decode`, ver `lib/auth/api.ts`).
 - **Pipe de validación global**: `whitelist + forbidNonWhitelisted + transform` — cualquier campo no declarado en el DTO del backend hace fallar la request con 400. Ojo con esto al construir formularios: nunca mandar campos "de más" (ej. nunca mandar `clienteId`/`proyectoId`/`tareaId`/`solicitanteId` en el form de crear OC, se derivan server-side).
 
 ### Auth
@@ -86,7 +86,7 @@ Relevado exhaustivamente en sesión (ver también `contexto-gestion-interna-back
 Error login: 401 `CREDENCIALES_INVALIDAS`. Ya implementado en `lib/auth/api.ts` + `lib/auth/contexto.tsx`.
 
 ### Usuarios (`/usuarios`) — ADMIN salvo `mi-contrasena`
-CRUD estándar. `PATCH /usuarios/mi-contrasena` (cualquier rol autenticado): `{contrasenaActual, contrasenaNueva}`. Campos: `nombre, email, contrasena(solo crear), rol, sectorId?, activo?(solo actualizar)`. Baja es **lógica** (`activo=false`), nunca DELETE físico real en negocio aunque el endpoint HTTP es `DELETE`. Errores: 409 `EMAIL_YA_REGISTRADO`, 404 `USUARIO_NO_ENCONTRADO`, 401 `CONTRASENA_ACTUAL_INCORRECTA`.
+CRUD estándar. `PATCH /usuarios/mi-contrasena` (cualquier rol autenticado): `{contrasenaActual, contrasenaNueva}`. Campos: `nombre, email, contrasena(solo crear), rol, sectorId?, sectoresEncargadoIds?(array, reemplaza la lista completa), activo?(solo actualizar)`. Baja es **lógica** (`activo=false`), nunca DELETE físico real en negocio aunque el endpoint HTTP es `DELETE`. Errores: 409 `EMAIL_YA_REGISTRADO`, 404 `USUARIO_NO_ENCONTRADO`, 401 `CONTRASENA_ACTUAL_INCORRECTA`.
 
 ### Sectores (`/sectores`) — ADMIN todo
 `{nombre}` (único). Errores: 409 `SECTOR_YA_EXISTE`, 422 `SECTOR_CON_USUARIOS_ASIGNADOS` / `SECTOR_CON_ORDENES_COMPRA_ASOCIADAS` al eliminar.
@@ -462,6 +462,18 @@ Pase de testing completo pedido por el usuario ("probá absolutamente todo"), ig
 - Backend: 6 errores de `eslint` (solo `prettier/prettier`, formato) en archivos no relacionados con este repo — sin cambios, ver el detalle en `contexto-gestion-interna-backend.md`.
 
 **Confirmado sin hallazgos** (para que quede explícito qué se cubrió, no hace falta re-revisar en la próxima sesión): las 7 funciones de gating de `lib/ordenes-compra/presentacion.ts` comparadas línea por línea contra la tabla de transiciones y las reglas de rol/sector — coinciden exactamente; `calcularSaldoDisponible` excluye `ANULADO` y no aplica el caso "excluir la OC en edición" porque `cotizacionId` es inmutable; `calcularResumenCostos`/`obtenerMonedasDisponibles` (conversión de moneda, pivote UYU, casos borde de propuesta nula/override manual) sin bugs de signo ni doble conversión; `components/ui/Tabla.tsx` ya envuelve todo en `overflow-x-auto`, ninguna tabla desborda horizontalmente; patrón de modal montado condicionalmente sin riesgo de `defaultValues` desincronizados en los 9 dominios; descarga de archivos (blob + `<a download>`, 3 lugares) sin fugas de `revokeObjectURL`; invalidación de queries de comentarios/tareas correcta; Dashboard (`TarjetaConteoOC` y conteos por rol en `app/(app)/dashboard/page.tsx`) arma bien los filtros por rol (SOLICITANTE por `solicitanteId` propio, ENCARGADO por su `sectorId`, sin doble conteo); menú mobile de `EncabezadoApp.tsx` cierra al navegar y usa la misma lista de items que desktop; módulo Propuesta de Inversión (`ModalPropuestaInversion`/`TablaPropuestasInversion`, los 5 mimetypes aceptados, honorarios mostrados tal cual vienen del backend); `mi-cuenta/page.tsx` valida coincidencia de contraseña nueva/confirmación y muestra bien el error `CONTRASENA_ACTUAL_INCORRECTA`; `RequiereRol.tsx` sin bugs de comparación.
+
+---
+
+## Un ENCARGADO puede aprobar más de un sector (2026-09-22, commit `10d223a`)
+
+Espejo del cambio de backend (ver `contexto-gestion-interna-backend.md`, misma fecha): `Usuario` ahora trae `sectoresEncargado: string[]` además de `sectorId`, extraído del JWT decodificado igual que `sectorId` (`lib/auth/api.ts`, `lib/auth/tipos.ts`).
+
+- **`lib/ordenes-compra/presentacion.ts`**: las 7 funciones de gating (referenciadas más arriba y ya auditadas línea por línea el 2026-08-21) dejaron de comparar `usuario.sectorId === orden.sectorId` — ahora usan un helper interno `esEncargadoDelSector()` que chequea `usuario.sectoresEncargado.includes(orden.sectorId)`. Afecta a `esDeLaOrden` (editar/enviar borrador), `puedeAprobarORechazar` y `puedeAnular`. Si se vuelve a auditar esta sección, el criterio de "mismo sector" pasó a ser "sector dentro de la lista", no cambia nada más de la lógica.
+- **Dashboard** (`app/(app)/dashboard/page.tsx`): la tarjeta "Pendientes de mi aprobación" (y las otras dos de ENCARGADO) arman `sectorId` como la unión de `[usuario.sectorId, ...usuario.sectoresEncargado]` sin duplicados, unida por coma — el backend acepta `sectorId` como CSV en `GET /ordenes-compra` (`{ in: [...] }`). Antes solo contaba el sector de perfil.
+- **`ModalUsuario.tsx`**: nuevo grupo de checkboxes "Sectores que puede aprobar" (uno por sector, `register("sectoresEncargadoIds")` — react-hook-form arma el array solo), visible únicamente cuando el rol elegido en el formulario es `ENCARGADO` (`useWatch({ control, name: "rol" })`, no `watch()` directo — evita el warning de React Compiler sobre APIs no memoizables). Al cambiar el rol a otro que no sea `ENCARGADO`, no se manda la lista aunque haya quedado tildada.
+- **Fuera de alcance a propósito**: el filtro de sector en `app/(app)/ordenes-compra/page.tsx` sigue siendo un `<select>` de un solo valor, precargado con `usuario.sectorId` — no se rediseñó como multi-select. No es un bug de permisos (la visibilidad de la lista no está restringida por sector en el backend), solo un valor por defecto que no refleja todos los sectores de un encargado multi-sector.
+- Verificado `tsc --noEmit`/`eslint` sin errores. **Verificación visual en navegador no se hizo** (mismo bloqueo de siempre — Claude in Chrome no conectó en ninguna sesión de este proyecto) — se probó el flujo real contra la API del backend en local (login, agregar un segundo sector, aprobar una orden de ese sector) en vez de en el navegador.
 
 ---
 
