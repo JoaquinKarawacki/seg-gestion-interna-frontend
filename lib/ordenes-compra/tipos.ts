@@ -46,6 +46,9 @@ export interface CrearOrdenCompraDto {
   sectorId: string;
   proveedorId: string;
   cotizacionId?: string;
+  // Fase 2: cuando la OP se genera desde una Orden de Compra aprobada. El backend
+  // deriva la cotización (y con ella proyecto/cliente/tarea) de esta OC.
+  solicitudCompraId?: string;
   moneda: Moneda;
   monto: number;
   concepto: string;
@@ -54,6 +57,9 @@ export interface CrearOrdenCompraDto {
   ivaIncluido: boolean;
   observaciones?: string;
   factura?: File;
+  // Confirmación explícita para permitir que el monto supere el de la OC vinculada
+  // (el backend bloquea con MONTO_EXCEDE_COTIZACION si no viene).
+  confirmarExcesoMonto?: boolean;
 }
 
 export interface ActualizarOrdenCompraDto {

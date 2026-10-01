@@ -36,6 +36,7 @@ export async function crearOrdenCompra(dto: CrearOrdenCompraDto) {
   formData.set("sectorId", dto.sectorId);
   formData.set("proveedorId", dto.proveedorId);
   if (dto.cotizacionId) formData.set("cotizacionId", dto.cotizacionId);
+  if (dto.solicitudCompraId) formData.set("solicitudCompraId", dto.solicitudCompraId);
   formData.set("moneda", dto.moneda);
   formData.set("monto", String(dto.monto));
   formData.set("concepto", dto.concepto);
@@ -43,6 +44,7 @@ export async function crearOrdenCompra(dto: CrearOrdenCompraDto) {
   formData.set("pagaIva", String(dto.pagaIva));
   formData.set("ivaIncluido", String(dto.ivaIncluido));
   if (dto.observaciones) formData.set("observaciones", dto.observaciones);
+  if (dto.confirmarExcesoMonto) formData.set("confirmarExcesoMonto", "true");
   if (dto.factura) formData.set("factura", dto.factura);
 
   const { datos } = await peticion<RespuestaExitosa<OrdenCompra>>("/ordenes-compra", {

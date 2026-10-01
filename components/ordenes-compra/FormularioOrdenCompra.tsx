@@ -26,12 +26,15 @@ import {
 } from "@/lib/ordenes-compra/tipos";
 import type { FormaPago, OrdenCompra, TipoOC } from "@/lib/ordenes-compra/tipos";
 import type { Moneda } from "@/lib/cotizaciones/tipos";
+import type { SolicitudCompra } from "@/lib/solicitudes-compra/tipos";
+import { ErrorApi } from "@/lib/http/cliente";
 import { Campo } from "@/components/ui/Campo";
 import { Select } from "@/components/ui/Select";
 import { TextArea } from "@/components/ui/TextArea";
 import { Boton } from "@/components/ui/Boton";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
+import { ModalConfirmacionExcesoMonto } from "@/components/ordenes-compra/ModalConfirmacionExcesoMonto";
 
 interface DatosFormulario {
   tipo: TipoOC;
@@ -48,7 +51,13 @@ interface DatosFormulario {
   factura?: FileList;
 }
 
-export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: OrdenCompra | null }) {
+export function FormularioOrdenCompra({
+  ordenExistente,
+  solicitudOrigen = null,
+}: {
+  ordenExistente: OrdenCompra | null;
+  solicitudOrigen?: SolicitudCompra | null;
+}) {
   const router = useRouter();
   const { usuario } = useAuth();
   const sectores = useSectores();
@@ -56,8 +65,14 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
   const mapaProveedores = useMapaProveedores();
   const proyectos = useProyectos();
 
+  // Modo "crear OP desde una Orden de Compra aprobada" (Fase 2).
+  const esDesdeOC = Boolean(solicitudOrigen) && !ordenExistente;
+
   const [proyectoId, setProyectoId] = useState("");
   const [cotizacionId, setCotizacionId] = useState("");
+  // Guarda los datos del submit cuando el backend avisa que el monto excede la OC,
+  // para reenviarlos con confirmación si el usuario acepta en el modal.
+  const [datosExceso, setDatosExceso] = useState<DatosFormulario | null>(null);
   const cotizacionesDelProyecto = useCotizacionesDeProyecto(proyectoId || undefined);
   const ordenesCompraDeCotizacion = useOrdenesCompraDeCotizacion(cotizacionId || undefined);
   const cotizacionesActivas = (cotizacionesDelProyecto.data ?? []).filter(
@@ -68,7 +83,8 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
   const crearOrdenCompra = useCrearOrdenCompra();
   const actualizarOrdenCompra = useActualizarOrdenCompra(ordenExistente?.id ?? "");
   const mutacion = ordenExistente ? actualizarOrdenCompra : crearOrdenCompra;
-  const proveedorBloqueado = Boolean(ordenExistente?.cotizacionId) || Boolean(cotizacionSeleccionada);
+  const proveedorBloqueado =
+    Boolean(ordenExistente?.cotizacionId) || Boolean(cotizacionSeleccionada) || esDesdeOC;
 
   const {
     register,
@@ -76,17 +92,20 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
+    // En modo OC se heredan solo Tipo, Sector, Proveedor y Moneda. Monto, Concepto,
+    // Paga IVA / IVA incluido y Observaciones quedan vacíos para que los complete
+    // el solicitante (decisión del usuario).
     defaultValues: {
-      tipo: ordenExistente?.tipo ?? "ARTICULO",
+      tipo: ordenExistente?.tipo ?? solicitudOrigen?.tipo ?? "ARTICULO",
       fecha: ordenExistente?.fecha.slice(0, 10) ?? obtenerFechaLocalDeHoy(),
-      sectorId: ordenExistente?.sectorId ?? usuario?.sectorId ?? "",
-      proveedorId: ordenExistente?.proveedorId ?? "",
-      moneda: ordenExistente?.moneda ?? "UYU",
+      sectorId: ordenExistente?.sectorId ?? solicitudOrigen?.sectorId ?? usuario?.sectorId ?? "",
+      proveedorId: ordenExistente?.proveedorId ?? solicitudOrigen?.proveedorId ?? "",
+      moneda: ordenExistente?.moneda ?? solicitudOrigen?.moneda ?? "UYU",
       monto: ordenExistente?.monto ?? "",
       concepto: ordenExistente?.concepto ?? "",
       formaPago: ordenExistente?.formaPago ?? "TRANSFERENCIA_BANCARIA",
-      pagaIva: ordenExistente?.pagaIva ?? true,
-      ivaIncluido: ordenExistente?.ivaIncluido ?? true,
+      pagaIva: ordenExistente?.pagaIva ?? (esDesdeOC ? false : true),
+      ivaIncluido: ordenExistente?.ivaIncluido ?? (esDesdeOC ? false : true),
       observaciones: ordenExistente?.observaciones ?? "",
     },
   });
@@ -97,6 +116,28 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
       setValue("moneda", cotizacionSeleccionada.moneda);
     }
   }, [cotizacionSeleccionada, setValue]);
+
+  // Crea la OP a partir de la OC. Se separa del submit para poder reintentarla con
+  // confirmarExcesoMonto=true desde el modal de advertencia de monto.
+  async function crearDesdeOC(datos: DatosFormulario, confirmarExcesoMonto: boolean) {
+    const nueva = await crearOrdenCompra.mutateAsync({
+      tipo: datos.tipo,
+      fecha: datos.fecha,
+      sectorId: datos.sectorId,
+      proveedorId: solicitudOrigen!.proveedorId,
+      solicitudCompraId: solicitudOrigen!.id,
+      moneda: datos.moneda,
+      monto: Number(datos.monto),
+      concepto: datos.concepto,
+      formaPago: datos.formaPago,
+      pagaIva: datos.pagaIva,
+      ivaIncluido: datos.ivaIncluido,
+      observaciones: datos.observaciones || undefined,
+      factura: datos.factura?.[0],
+      confirmarExcesoMonto,
+    });
+    router.push(`/ordenes-compra/${nueva.id}`);
+  }
 
   async function alEnviar(datos: DatosFormulario) {
     if (ordenExistente) {
@@ -113,6 +154,21 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
         observaciones: datos.observaciones || undefined,
       });
       router.push(`/ordenes-compra/${ordenExistente.id}`);
+      return;
+    }
+
+    if (esDesdeOC) {
+      try {
+        await crearDesdeOC(datos, false);
+      } catch (error) {
+        // Si el backend avisa que el monto supera la OC, abrimos el modal de
+        // confirmación en vez de tratarlo como error terminal.
+        if (error instanceof ErrorApi && error.codigo === "MONTO_EXCEDE_COTIZACION") {
+          setDatosExceso(datos);
+          return;
+        }
+        throw error;
+      }
       return;
     }
 
@@ -134,6 +190,15 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
     router.push(`/ordenes-compra/${nueva.id}`);
   }
 
+  async function confirmarExceso() {
+    if (!datosExceso) return;
+    try {
+      await crearDesdeOC(datosExceso, true);
+    } catch {
+      // El error queda en crearOrdenCompra.error y se muestra dentro del modal.
+    }
+  }
+
   if (sectores.isLoading || proveedores.isLoading || proyectos.isLoading) {
     return <Cargando etiqueta="Cargando formulario..." />;
   }
@@ -143,9 +208,16 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
 
   return (
     <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-5">
-      {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
+      {/* Mientras el modal de exceso está abierto, el error lo muestra el propio modal. */}
+      {mutacion.error && !datosExceso ? <EstadoError error={mutacion.error} /> : null}
 
-      {!ordenExistente ? (
+      {esDesdeOC && solicitudOrigen ? (
+        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-600">
+          Esta orden de pago se genera desde la{" "}
+          <b>Orden de Compra #{solicitudOrigen.numero}</b>. Monto de la OC:{" "}
+          <b>{formatearMonto(solicitudOrigen.monto, solicitudOrigen.moneda)}</b>.
+        </div>
+      ) : !ordenExistente ? (
         <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">
             Vincular a un proyecto (opcional)
@@ -322,6 +394,28 @@ export function FormularioOrdenCompra({ ordenExistente }: { ordenExistente: Orde
       <Boton type="submit" disabled={isSubmitting} className="self-start">
         {ordenExistente ? "Guardar cambios" : "Crear orden de pago"}
       </Boton>
+
+      {datosExceso && solicitudOrigen ? (
+        <ModalConfirmacionExcesoMonto
+          montoOC={solicitudOrigen.monto}
+          montoIngresado={Number(datosExceso.monto)}
+          moneda={solicitudOrigen.moneda}
+          cargando={crearOrdenCompra.isPending}
+          error={
+            crearOrdenCompra.error instanceof ErrorApi &&
+            crearOrdenCompra.error.codigo === "MONTO_EXCEDE_COTIZACION"
+              ? null
+              : crearOrdenCompra.error
+          }
+          onConfirmar={confirmarExceso}
+          onCerrar={() => {
+            // Limpia el error MONTO_EXCEDE de la mutación para que no reaparezca en el
+            // banner de arriba al cerrar el modal.
+            crearOrdenCompra.reset();
+            setDatosExceso(null);
+          }}
+        />
+      ) : null}
     </form>
   );
 }

@@ -26,6 +26,7 @@ import {
   formatearMonto,
   puedeAnular,
   puedeAprobarORechazar,
+  puedeCrearOrdenPago,
   puedeEliminar,
   puedeEnviar,
 } from "@/lib/solicitudes-compra/presentacion";
@@ -168,6 +169,14 @@ export default function PaginaDetalleSolicitudCompra() {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        {puedeCrearOrdenPago(datos) ? (
+          <Boton
+            tamanio="sm"
+            onClick={() => router.push(`/ordenes-compra/nueva?solicitudId=${datos.id}`)}
+          >
+            Crear Orden de Pago
+          </Boton>
+        ) : null}
         {puedeEnviar(datos, usuario) ? (
           <Boton tamanio="sm" disabled={mutacionEnCurso} onClick={() => enviar.mutate(datos.id)}>
             Enviar

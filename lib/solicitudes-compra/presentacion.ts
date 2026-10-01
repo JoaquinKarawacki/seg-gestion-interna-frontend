@@ -68,3 +68,9 @@ export function puedeAnular(solicitud: SolicitudCompra, usuario: Usuario): boole
 export function puedeEliminar(solicitud: SolicitudCompra, usuario: Usuario): boolean {
   return solicitud.estado === "BORRADOR" && esDeLaSolicitud(solicitud, usuario);
 }
+
+// De una OC aprobada se derivan las Órdenes de Pago (Fase 2). Crear una OP no está
+// restringido por rol en el backend, así que el gate acá es el estado de la OC.
+export function puedeCrearOrdenPago(solicitud: SolicitudCompra): boolean {
+  return solicitud.estado === "APROBADO";
+}
