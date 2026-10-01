@@ -9,8 +9,8 @@ import { TarjetaComprometido } from "@/components/proyectos/TarjetaComprometido"
 import { ProveedoresInvolucrados } from "@/components/proyectos/ProveedoresInvolucrados";
 import { ModalTarea } from "@/components/tareas/ModalTarea";
 import { TablaTareas } from "@/components/tareas/TablaTareas";
-import { ModalCotizacion } from "@/components/cotizaciones/ModalCotizacion";
 import { TablaCotizaciones } from "@/components/cotizaciones/TablaCotizaciones";
+import { TablaSolicitudesCompra } from "@/components/solicitudes-compra/TablaSolicitudesCompra";
 import { TablaOrdenesCompraProyecto } from "@/components/ordenes-compra/TablaOrdenesCompraProyecto";
 import { Boton, BotonLink } from "@/components/ui/Boton";
 import { Cargando } from "@/components/ui/Cargando";
@@ -21,14 +21,17 @@ import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
+import { useSolicitudesCompraDeProyecto } from "@/lib/solicitudes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
-const TABS = ["resumen", "cotizaciones", "ordenes-compra"] as const;
+const TABS = ["resumen", "ordenes-compra", "cotizaciones", "ordenes-pago", "tareas"] as const;
 type Tab = (typeof TABS)[number];
 const ETIQUETAS_TAB: Record<Tab, string> = {
   resumen: "Resumen",
+  "ordenes-compra": "Órdenes de Compra",
   cotizaciones: "Cotizaciones",
-  "ordenes-compra": "Órdenes de Pago",
+  "ordenes-pago": "Órdenes de Pago",
+  tareas: "Tareas",
 };
 
 export default function PaginaDetalleProyecto() {
@@ -38,12 +41,11 @@ export default function PaginaDetalleProyecto() {
   const tareas = useTareasDeProyecto(id);
   const cotizaciones = useCotizacionesDeProyecto(id);
   const ordenesCompra = useOrdenesCompraDeProyecto(id);
+  const solicitudesCompra = useSolicitudesCompraDeProyecto(id);
 
   const [tab, setTab] = useState<Tab>("resumen");
   const [modalTareaAbierto, setModalTareaAbierto] = useState(false);
   const [tareaEditando, setTareaEditando] = useState<Tarea | null>(null);
-  const [modalCotizacionAbierto, setModalCotizacionAbierto] = useState(false);
-  const [tareaIdParaCotizacion, setTareaIdParaCotizacion] = useState<string | null>(null);
 
   function abrirCrearTarea() {
     setTareaEditando(null);
@@ -53,11 +55,6 @@ export default function PaginaDetalleProyecto() {
   function abrirEditarTarea(tarea: Tarea) {
     setTareaEditando(tarea);
     setModalTareaAbierto(true);
-  }
-
-  function abrirNuevaCotizacion(tareaId: string) {
-    setTareaIdParaCotizacion(tareaId);
-    setModalCotizacionAbierto(true);
   }
 
   if (proyecto.isLoading) return <Cargando etiqueta="Cargando proyecto..." />;
@@ -129,48 +126,35 @@ export default function PaginaDetalleProyecto() {
         </div>
       ) : null}
 
-      {tab === "cotizaciones" ? (
-        <div className="flex flex-col gap-6">
-          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Tareas</h2>
-              <Boton tamanio="sm" onClick={abrirCrearTarea}>
-                <IconoMas className="h-4 w-4" />
-                Nueva tarea
-              </Boton>
-            </div>
-            {tareas.isLoading ? <Cargando etiqueta="Cargando tareas..." /> : null}
-            {tareas.isError ? <EstadoError error={tareas.error} /> : null}
-            {tareas.data ? <TablaTareas tareas={tareas.data} onEditar={abrirEditarTarea} /> : null}
+      {tab === "ordenes-compra" ? (
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Compra</h2>
+            <BotonLink tamanio="sm" href="/solicitudes-compra/nueva">
+              <IconoMas className="h-4 w-4" />
+              Nueva orden de compra
+            </BotonLink>
           </div>
-
-          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Cotizaciones</h2>
-              {tareas.data && tareas.data.length > 0 ? (
-                <Boton tamanio="sm" onClick={() => abrirNuevaCotizacion(tareas.data[0].id)}>
-                  <IconoMas className="h-4 w-4" />
-                  Nueva cotización
-                </Boton>
-              ) : null}
-            </div>
-            {cotizaciones.isLoading ? <Cargando etiqueta="Cargando cotizaciones..." /> : null}
-            {cotizaciones.isError ? <EstadoError error={cotizaciones.error} /> : null}
-            {tareas.data && tareas.data.length === 0 ? (
-              <p className="text-sm text-gray-500">Creá una tarea antes de cargar una cotización.</p>
-            ) : null}
-            {cotizaciones.data && tareas.data && tareas.data.length > 0 ? (
-              <TablaCotizaciones
-                cotizaciones={cotizaciones.data}
-                tareas={tareas.data}
-                onNuevaCotizacion={abrirNuevaCotizacion}
-              />
-            ) : null}
-          </div>
+          {solicitudesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de compra..." /> : null}
+          {solicitudesCompra.isError ? <EstadoError error={solicitudesCompra.error} /> : null}
+          {solicitudesCompra.data ? (
+            <TablaSolicitudesCompra solicitudes={solicitudesCompra.data} hayFiltrosActivos={false} />
+          ) : null}
         </div>
       ) : null}
 
-      {tab === "ordenes-compra" ? (
+      {tab === "cotizaciones" ? (
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500">Cotizaciones</h2>
+          {cotizaciones.isLoading ? <Cargando etiqueta="Cargando cotizaciones..." /> : null}
+          {cotizaciones.isError ? <EstadoError error={cotizaciones.error} /> : null}
+          {cotizaciones.data && tareas.data ? (
+            <TablaCotizaciones cotizaciones={cotizaciones.data} tareas={tareas.data} />
+          ) : null}
+        </div>
+      ) : null}
+
+      {tab === "ordenes-pago" ? (
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Pago</h2>
@@ -187,20 +171,26 @@ export default function PaginaDetalleProyecto() {
         </div>
       ) : null}
 
+      {tab === "tareas" ? (
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Tareas</h2>
+            <Boton tamanio="sm" onClick={abrirCrearTarea}>
+              <IconoMas className="h-4 w-4" />
+              Nueva tarea
+            </Boton>
+          </div>
+          {tareas.isLoading ? <Cargando etiqueta="Cargando tareas..." /> : null}
+          {tareas.isError ? <EstadoError error={tareas.error} /> : null}
+          {tareas.data ? <TablaTareas tareas={tareas.data} onEditar={abrirEditarTarea} /> : null}
+        </div>
+      ) : null}
+
       {modalTareaAbierto ? (
         <ModalTarea
           proyectoId={proyecto.data.id}
           tarea={tareaEditando}
           onCerrar={() => setModalTareaAbierto(false)}
-        />
-      ) : null}
-
-      {modalCotizacionAbierto ? (
-        <ModalCotizacion
-          proyectoId={proyecto.data.id}
-          tareas={tareas.data ?? []}
-          tareaIdInicial={tareaIdParaCotizacion}
-          onCerrar={() => setModalCotizacionAbierto(false)}
         />
       ) : null}
     </div>

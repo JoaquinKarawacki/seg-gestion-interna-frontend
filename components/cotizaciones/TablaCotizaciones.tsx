@@ -47,7 +47,7 @@ export function TablaCotizaciones({
 }: {
   cotizaciones: Cotizacion[];
   tareas: Tarea[];
-  onNuevaCotizacion: (tareaId: string) => void;
+  onNuevaCotizacion?: (tareaId: string) => void;
 }) {
   const mapaProveedores = useMapaProveedores();
 
@@ -69,10 +69,12 @@ export function TablaCotizaciones({
         <div key={grupo.id} className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-700">{grupo.nombre}</h3>
-            <BotonAccionFila onClick={() => onNuevaCotizacion(grupo.id)}>
-              <IconoMas className="h-3.5 w-3.5" />
-              Nueva versión
-            </BotonAccionFila>
+            {onNuevaCotizacion ? (
+              <BotonAccionFila onClick={() => onNuevaCotizacion(grupo.id)}>
+                <IconoMas className="h-3.5 w-3.5" />
+                Nueva versión
+              </BotonAccionFila>
+            ) : null}
           </div>
           <Tabla>
             <thead>

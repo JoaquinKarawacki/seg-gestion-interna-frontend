@@ -2,12 +2,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   crearCotizacion,
   descargarArchivoCotizacion,
+  listarCotizaciones,
   listarCotizacionesDeProyecto,
   obtenerCotizacion,
 } from "@/lib/cotizaciones/api";
 import type { CrearCotizacionDto } from "@/lib/cotizaciones/tipos";
 
 const CLAVE_COTIZACIONES = "cotizaciones";
+
+// Búsqueda global (página /cotizaciones) — se filtra client-side.
+export function useCotizaciones() {
+  return useQuery({
+    queryKey: [CLAVE_COTIZACIONES, "busqueda"],
+    queryFn: () => listarCotizaciones(),
+  });
+}
 
 export function useCotizacionesDeProyecto(proyectoId: string | undefined) {
   return useQuery({

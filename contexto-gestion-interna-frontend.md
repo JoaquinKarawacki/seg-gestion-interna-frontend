@@ -477,6 +477,33 @@ Espejo del cambio de backend (ver `contexto-gestion-interna-backend.md`, misma f
 
 ---
 
+## Orden de Compra (entidad nueva) — Fase 1 (2026-09-30)
+
+Espejo del cambio de backend (ver `contexto-gestion-interna-backend.md`, misma fecha). Entra en escena una entidad NUEVA **"Orden de Compra" (OC)** que en el código se llama `SolicitudCompra` y vive en rutas `/solicitudes-compra`. **No confundir** con el módulo existente `ordenes-compra`, que es la "Orden de Pago" (OP) y NO se tocó (solo se reusó como molde). Nuevo flujo: Proyecto → OC (con adjunto PDF obligatorio) → el backend auto-crea Cotización + Tarea → la aprueba el ENCARGADO del sector.
+
+**Capa de dominio nueva:**
+- `lib/rubros/{tipos,api,hooks}.ts` — `useRubros()` (catálogo global, patrón `useProveedores`).
+- `lib/solicitudes-compra/{tipos,api,hooks,presentacion}.ts` — espejo de `lib/ordenes-compra/`. `api.ts` sube el `adjunto` por multipart (`FormData` + `peticion({formData})`). `hooks.ts` tiene `useTransicionSolicitudCompra` factorizado. `presentacion.ts` replica el gating puro: `puedeEnviar`, `puedeAprobarORechazar` (`estado==='PENDIENTE' && rol==='ENCARGADO' && sectoresEncargado.includes(sectorId)`), `puedeAnular`, `puedeEliminar`.
+- `lib/cotizaciones/` — se agregó `CotizacionBusqueda`, `listarCotizaciones()` y `useCotizaciones()` para la búsqueda global (se mantuvo lo existente).
+
+**Pantallas:**
+- `app/(app)/solicitudes-compra/` — `page.tsx` (listado + buscador client-side por número/concepto/proveedor + filtro de estado, patrón `clientes/page.tsx`), `nueva/page.tsx`, `[id]/page.tsx` (detalle con datos resueltos por los mapas, botones Enviar/Aprobar/Rechazar/Anular/Eliminar condicionados por `presentacion.ts`, historial, ver adjunto), `loading.tsx`.
+- `components/solicitudes-compra/`: `FormularioSolicitudCompra.tsx` (Proyecto → **SelectorRubro** → Proveedor → Tipo → Monto/Moneda → Concepto → IVA → Observaciones → **Adjunto PDF obligatorio**; cliente derivado read-only; submit multipart), `SelectorRubro.tsx` (Select de rubros activos + "Otros" revela un `<Campo>` de texto → manda `rubroNombre`), `TablaSolicitudesCompra.tsx`, `HistorialSolicitudCompra.tsx`. Para rechazar/anular se reusó `ModalMotivoTransicion` de `ordenes-compra`.
+- `app/(app)/cotizaciones/page.tsx` — búsqueda global reutilizable (texto por proyecto/proveedor/rubro + estado), descarga de PDF con `useDescargarCotizacion`.
+
+**Cambios en pantallas existentes:**
+- `app/(app)/proyectos/[id]/page.tsx` — se **quitó** la creación de cotización (`ModalCotizacion`, botón "Nueva cotización", estados/handlers); `TablaCotizaciones` quedó solo lectura (`onNuevaCotizacion` pasó a opcional). Tabs reorganizados: **Resumen / Órdenes de Compra / Cotizaciones / Órdenes de Pago / Tareas**.
+- `components/layout/EncabezadoApp.tsx` — nav nuevos: "Órdenes de Compra" → `/solicitudes-compra` y "Cotizaciones" → `/cotizaciones`.
+
+**Decisiones / notas:**
+- **No** hay página `[id]/editar` ni botón Editar (edición diferida en Fase 1: editaría la cotización enlazada; se usa eliminar+recrear en BORRADOR).
+- El adjunto se ve/descarga por blob con token (la API exige `Authorization`, no admite link directo), igual que factura/cotización.
+- Proyecto y Rubro se manejan con `useState` (no RHF) por su lógica condicional, igual que el selector de proyecto del molde.
+- **Deuda menor**: `crearCotizacion`/`ModalCotizacion` quedaron en el repo pero **sin referencias** (el endpoint `POST /cotizaciones` ya no existe) — borrarlos en una pasada de limpieza.
+- Verificado `tsc --noEmit` **limpio**, `eslint` **limpio**, y `next build` compila la app (el único fallo es el fetch de Google Fonts offline en `app/layout.tsx`, preexistente y de red, no de código). Verificación visual en navegador sigue bloqueada; el flujo se validó contra la API real del backend (26/26 checks E2E, documentado del lado backend).
+
+---
+
 ## Convenciones (heredadas del backend, aplican igual acá)
 
 - **Todo en español**: componentes, hooks, variables, rutas, mensajes — salvo restricciones técnicas de Next.js/React (`layout.tsx`, `page.tsx`, decoradores/convenciones de archivo, nombres de variables de entorno como `NEXT_PUBLIC_API_URL`).
