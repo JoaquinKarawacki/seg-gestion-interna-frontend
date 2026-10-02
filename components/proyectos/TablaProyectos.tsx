@@ -55,7 +55,7 @@ export function TablaProyectos({
             <TablaEncabezadoCelda>Nombre</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Cliente</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Sector</TablaEncabezadoCelda>
-            <TablaEncabezadoCelda>Tareas</TablaEncabezadoCelda>
+            <TablaEncabezadoCelda>Rubros</TablaEncabezadoCelda>
             <TablaEncabezadoCelda>Cotizaciones activas</TablaEncabezadoCelda>
             <TablaEncabezadoCelda />
           </TablaFila>

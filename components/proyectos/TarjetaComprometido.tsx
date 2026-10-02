@@ -85,7 +85,7 @@ export function TarjetaComprometido({
       <BarraCostosProyecto costoSeg={costoSeg} ejecucion={ejecucion} />
 
       <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
-        <p className="text-xs uppercase tracking-wide text-gray-400">Desglose por tarea</p>
+        <p className="text-xs uppercase tracking-wide text-gray-400">Desglose por rubro</p>
         {desglose.length === 0 ? (
           <EstadoVacio titulo="Todavía no hay nada cotizado ni pagado" />
         ) : (

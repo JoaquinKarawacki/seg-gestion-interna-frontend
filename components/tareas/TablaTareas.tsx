@@ -20,7 +20,7 @@ export function TablaTareas({
   const [errorEliminar, setErrorEliminar] = useState<unknown>(null);
 
   async function manejarEliminar(tarea: Tarea) {
-    if (!window.confirm(`¿Eliminar la tarea "${tarea.nombre}"?`)) return;
+    if (!window.confirm(`¿Eliminar el rubro "${tarea.nombre}"?`)) return;
     setErrorEliminar(null);
     try {
       await eliminarTarea.mutateAsync(tarea.id);
@@ -30,7 +30,7 @@ export function TablaTareas({
   }
 
   if (tareas.length === 0) {
-    return <EstadoVacio titulo="Este proyecto todavía no tiene tareas" />;
+    return <EstadoVacio titulo="Este proyecto todavía no tiene rubros" />;
   }
 
   return (

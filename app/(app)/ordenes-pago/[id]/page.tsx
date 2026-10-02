@@ -176,7 +176,7 @@ export default function PaginaDetalleOrdenPago() {
               )}
             </p>
             <p>
-              Tarea: <span className="font-medium text-gray-900">{tarea?.nombre ?? "General del proyecto"}</span>
+              Rubro: <span className="font-medium text-gray-900">{tarea?.nombre ?? "General del proyecto"}</span>
             </p>
             {cotizacion.data ? (
               <p>

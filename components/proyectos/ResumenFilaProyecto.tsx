@@ -29,7 +29,7 @@ export function ResumenFilaProyecto({ proyectoId }: { proyectoId: string }) {
       <TablaCelda>
         {tareas.data ? (
           <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
-            {tareas.data.length} {tareas.data.length === 1 ? "tarea" : "tareas"}
+            {tareas.data.length} {tareas.data.length === 1 ? "rubro" : "rubros"}
           </span>
         ) : (
           <span className="text-gray-300">···</span>

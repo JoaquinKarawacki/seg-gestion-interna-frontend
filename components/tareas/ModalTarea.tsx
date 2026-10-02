@@ -41,7 +41,7 @@ export function ModalTarea({
   }
 
   return (
-    <Modal titulo={tarea ? "Editar tarea" : "Nueva tarea"} abierto onCerrar={onCerrar}>
+    <Modal titulo={tarea ? "Editar rubro" : "Nuevo rubro"} abierto onCerrar={onCerrar}>
       <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
         {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
         <Campo
@@ -50,7 +50,7 @@ export function ModalTarea({
           {...register("nombre", { required: "Requerido" })}
         />
         <Boton type="submit" disabled={isSubmitting} className="self-start">
-          {tarea ? "Guardar cambios" : "Crear tarea"}
+          {tarea ? "Guardar cambios" : "Crear rubro"}
         </Boton>
       </form>
     </Modal>

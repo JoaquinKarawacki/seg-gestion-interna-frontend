@@ -24,14 +24,14 @@ import { useOrdenesPagoDeProyecto } from "@/lib/ordenes-pago/hooks";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
-const TABS = ["resumen", "ordenes-compra", "cotizaciones", "ordenes-pago", "tareas"] as const;
+const TABS = ["resumen", "ordenes-compra", "ordenes-pago", "cotizaciones", "tareas"] as const;
 type Tab = (typeof TABS)[number];
 const ETIQUETAS_TAB: Record<Tab, string> = {
   resumen: "Resumen",
   "ordenes-compra": "Órdenes de Compra",
-  cotizaciones: "Cotizaciones",
   "ordenes-pago": "Órdenes de Pago",
-  tareas: "Tareas",
+  cotizaciones: "Cotizaciones",
+  tareas: "Rubros",
 };
 
 export default function PaginaDetalleProyecto() {
@@ -174,13 +174,13 @@ export default function PaginaDetalleProyecto() {
       {tab === "tareas" ? (
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Tareas</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Rubros</h2>
             <Boton tamanio="sm" onClick={abrirCrearTarea}>
               <IconoMas className="h-4 w-4" />
-              Nueva tarea
+              Nuevo rubro
             </Boton>
           </div>
-          {tareas.isLoading ? <Cargando etiqueta="Cargando tareas..." /> : null}
+          {tareas.isLoading ? <Cargando etiqueta="Cargando rubros..." /> : null}
           {tareas.isError ? <EstadoError error={tareas.error} /> : null}
           {tareas.data ? <TablaTareas tareas={tareas.data} onEditar={abrirEditarTarea} /> : null}
         </div>
