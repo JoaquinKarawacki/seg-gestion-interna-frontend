@@ -6,15 +6,15 @@ import { Insignia } from "@/components/ui/Insignia";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { useMapaProveedores } from "@/lib/proveedores/hooks";
 import { formatearMonto } from "@/lib/cotizaciones/presentacion";
-import { ETIQUETAS_ESTADO_OC, TONO_ESTADO_OC } from "@/lib/ordenes-compra/presentacion";
-import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
+import { ETIQUETAS_ESTADO_OP, TONO_ESTADO_OP } from "@/lib/ordenes-pago/presentacion";
+import type { OrdenPago } from "@/lib/ordenes-pago/tipos";
 import type { Tarea } from "@/lib/tareas/tipos";
 
-export function TablaOrdenesCompraProyecto({
+export function TablaOrdenesPagoProyecto({
   ordenes,
   tareas,
 }: {
-  ordenes: OrdenCompra[];
+  ordenes: OrdenPago[];
   tareas: Tarea[];
 }) {
   const mapaProveedores = useMapaProveedores();
@@ -49,14 +49,14 @@ export function TablaOrdenesCompraProyecto({
               {grupo.ordenes.map((orden) => (
                 <TablaFila key={orden.id}>
                   <TablaCelda className="font-semibold text-gray-900">
-                    <Link href={`/ordenes-compra/${orden.id}`} className="hover:text-seg-rojo">
+                    <Link href={`/ordenes-pago/${orden.id}`} className="hover:text-seg-rojo">
                       #{orden.numero}
                     </Link>
                   </TablaCelda>
                   <TablaCelda>{mapaProveedores.get(orden.proveedorId)?.nombre ?? "—"}</TablaCelda>
                   <TablaCelda>{formatearMonto(orden.monto, orden.moneda)}</TablaCelda>
                   <TablaCelda>
-                    <Insignia tono={TONO_ESTADO_OC[orden.estado]}>{ETIQUETAS_ESTADO_OC[orden.estado]}</Insignia>
+                    <Insignia tono={TONO_ESTADO_OP[orden.estado]}>{ETIQUETAS_ESTADO_OP[orden.estado]}</Insignia>
                   </TablaCelda>
                 </TablaFila>
               ))}

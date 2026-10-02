@@ -5,8 +5,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Campo } from "@/components/ui/Campo";
 import { Boton } from "@/components/ui/Boton";
 import { EstadoError } from "@/components/ui/EstadoError";
-import { useAdjuntarFacturaOrdenCompra } from "@/lib/ordenes-compra/hooks";
-import { TAMANO_MAXIMO_ARCHIVO_FACTURA_BYTES, TIPO_ARCHIVO_FACTURA_ACEPTADO } from "@/lib/ordenes-compra/tipos";
+import { useAdjuntarFacturaOrdenPago } from "@/lib/ordenes-pago/hooks";
+import { TAMANO_MAXIMO_ARCHIVO_FACTURA_BYTES, TIPO_ARCHIVO_FACTURA_ACEPTADO } from "@/lib/ordenes-pago/tipos";
 
 interface DatosFormulario {
   factura: FileList;
@@ -19,7 +19,7 @@ export function ModalAdjuntarFactura({
   ordenId: string;
   onCerrar: () => void;
 }) {
-  const adjuntarFactura = useAdjuntarFacturaOrdenCompra(ordenId);
+  const adjuntarFactura = useAdjuntarFacturaOrdenPago(ordenId);
   const {
     register,
     handleSubmit,

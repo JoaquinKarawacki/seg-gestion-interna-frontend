@@ -6,7 +6,7 @@ import { BotonAccionFila } from "@/components/ui/BotonAccionFila";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { formatearNumero } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
-import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
+import type { OrdenPago } from "@/lib/ordenes-pago/tipos";
 import { useMapaProveedores } from "@/lib/proveedores/hooks";
 import { calcularDesglosePorTarea, calcularResumenCostos } from "@/lib/proyectos/presentacion";
 import { useMapaTiposCambio, useTiposCambio } from "@/lib/tipos-cambio/hooks";
@@ -14,11 +14,11 @@ import type { Tarea } from "@/lib/tareas/tipos";
 
 export function TarjetaComprometido({
   cotizaciones,
-  ordenesCompra,
+  ordenesPago,
   tareas,
 }: {
   cotizaciones: Cotizacion[] | undefined;
-  ordenesCompra: OrdenCompra[] | undefined;
+  ordenesPago: OrdenPago[] | undefined;
   tareas: Tarea[] | undefined;
 }) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<Moneda | undefined>(undefined);
@@ -31,7 +31,7 @@ export function TarjetaComprometido({
 
   const encabezado = <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Costos y ejecución</h2>;
 
-  if (!cotizaciones || !ordenesCompra || !tareas || !tiposCambio.data) {
+  if (!cotizaciones || !ordenesPago || !tareas || !tiposCambio.data) {
     return (
       <div className="flex flex-col gap-2">
         {encabezado}
@@ -40,7 +40,7 @@ export function TarjetaComprometido({
     );
   }
 
-  const resumen = calcularResumenCostos(cotizaciones, ordenesCompra, tasas, monedaSeleccionada);
+  const resumen = calcularResumenCostos(cotizaciones, ordenesPago, tasas, monedaSeleccionada);
 
   if (!resumen) {
     return (
@@ -52,7 +52,7 @@ export function TarjetaComprometido({
   }
 
   const { moneda, monedasDisponibles, costoSeg, ejecucion } = resumen;
-  const desglose = calcularDesglosePorTarea(tareas, cotizaciones, ordenesCompra, tasas, moneda).filter(
+  const desglose = calcularDesglosePorTarea(tareas, cotizaciones, ordenesPago, tasas, moneda).filter(
     (tarea) => tarea.proveedores.length > 0,
   );
 

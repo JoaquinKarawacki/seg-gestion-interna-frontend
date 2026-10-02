@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useConteoOrdenesCompra } from "@/lib/ordenes-compra/hooks";
-import type { FiltrosOrdenCompra } from "@/lib/ordenes-compra/tipos";
+import { useConteoOrdenesPago } from "@/lib/ordenes-pago/hooks";
+import type { FiltrosOrdenPago } from "@/lib/ordenes-pago/tipos";
 
-type FiltrosConteo = Omit<FiltrosOrdenCompra, "pagina" | "porPagina">;
+type FiltrosConteo = Omit<FiltrosOrdenPago, "pagina" | "porPagina">;
 
 export function TarjetaConteoOC({
   etiqueta,
@@ -17,8 +17,8 @@ export function TarjetaConteoOC({
   filtrosA: FiltrosConteo;
   filtrosB?: FiltrosConteo;
 }) {
-  const a = useConteoOrdenesCompra(filtrosA);
-  const b = useConteoOrdenesCompra(filtrosB ?? {}, { enabled: Boolean(filtrosB) });
+  const a = useConteoOrdenesPago(filtrosA);
+  const b = useConteoOrdenesPago(filtrosB ?? {}, { enabled: Boolean(filtrosB) });
 
   const cargando = a.isLoading || (Boolean(filtrosB) && b.isLoading);
   const hayError = a.isError || (Boolean(filtrosB) && b.isError);

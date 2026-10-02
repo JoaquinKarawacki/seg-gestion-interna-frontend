@@ -1,109 +1,78 @@
 import type { TonoInsignia } from "@/components/ui/Insignia";
 import type { Usuario } from "@/lib/auth/tipos";
-import type { Cotizacion } from "@/lib/cotizaciones/tipos";
-import type { EstadoOC, FormaPago, OrdenCompra, TipoOC } from "@/lib/ordenes-compra/tipos";
+import type {
+  EstadoOC,
+  OrdenCompra,
+  TipoOrdenCompra,
+} from "@/lib/ordenes-compra/tipos";
 
-export const ETIQUETAS_TIPO_OC: Record<TipoOC, string> = {
+export { formatearMonto, MONEDAS } from "@/lib/cotizaciones/presentacion";
+
+export const ETIQUETAS_TIPO_OC: Record<TipoOrdenCompra, string> = {
   ARTICULO: "Artículo",
   SERVICIO: "Servicio",
-};
-
-export const ETIQUETAS_FORMA_PAGO: Record<FormaPago, string> = {
-  CONTADO_CONTRA_ENTREGA: "Contado contra entrega",
-  TARJETA_CREDITO: "Tarjeta de crédito",
-  DIFERIDO: "Diferido",
-  GIRO_RED_COBRANZA: "Giro / red de cobranza",
-  TRANSFERENCIA_BANCARIA: "Transferencia bancaria",
 };
 
 export const ETIQUETAS_ESTADO_OC: Record<EstadoOC, string> = {
   BORRADOR: "Borrador",
   PENDIENTE: "Pendiente",
-  EN_CONSULTA: "En consulta",
   APROBADO: "Aprobado",
   RECHAZADO: "Rechazado",
-  PAGO_OBSERVADO: "Pago observado",
-  PAGADO: "Pagado",
   ANULADO: "Anulado",
 };
 
 export const TONO_ESTADO_OC: Record<EstadoOC, TonoInsignia> = {
   BORRADOR: "gris",
   PENDIENTE: "rojo-outline",
-  EN_CONSULTA: "apagado",
   APROBADO: "negro",
   RECHAZADO: "rojo",
-  PAGO_OBSERVADO: "rojo-outline",
-  PAGADO: "negro",
   ANULADO: "apagado",
 };
 
 // Reglas de permiso centralizadas — reflejan la máquina de estados y los roles
-// exactos que exige el backend. "Enviar" es más restrictivo en el front que en el
-// backend a propósito (el backend no chequea pertenencia ahí, decisión tomada con
-// el usuario de igualar el criterio de editar/eliminar).
+// que exige el backend para la OC. La aprueba el ENCARGADO del sector.
 
-function esEncargadoDelSector(orden: OrdenCompra, usuario: Usuario): boolean {
-  return usuario.sectoresEncargado.includes(orden.sectorId);
+function esEncargadoDelSector(solicitud: OrdenCompra, usuario: Usuario): boolean {
+  return usuario.sectoresEncargado.includes(solicitud.sectorId);
 }
 
-function esDeLaOrden(orden: OrdenCompra, usuario: Usuario): boolean {
+function esDeLaSolicitud(solicitud: OrdenCompra, usuario: Usuario): boolean {
   return (
-    usuario.id === orden.solicitanteId ||
-    esEncargadoDelSector(orden, usuario) ||
+    usuario.id === solicitud.solicitanteId ||
+    esEncargadoDelSector(solicitud, usuario) ||
     usuario.rol === "ADMIN"
   );
 }
 
-export function puedeEditar(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "BORRADOR" && esDeLaOrden(orden, usuario);
+export function puedeEnviar(solicitud: OrdenCompra, usuario: Usuario): boolean {
+  return solicitud.estado === "BORRADOR" && esDeLaSolicitud(solicitud, usuario);
 }
 
-export const puedeEliminar = puedeEditar;
-
-// Uruguay es UTC-3: toISOString() corre a UTC y adelanta el día entre las
-// 21:00 y las 23:59 hora local. Se arma el string a mano con los getters
-// locales de Date, nunca pasando por UTC.
-export function obtenerFechaLocalDeHoy(): string {
-  const ahora = new Date();
-  const anio = ahora.getFullYear();
-  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
-  const dia = String(ahora.getDate()).padStart(2, "0");
-  return `${anio}-${mes}-${dia}`;
+export function puedeAprobarORechazar(solicitud: OrdenCompra, usuario: Usuario): boolean {
+  return (
+    solicitud.estado === "PENDIENTE" &&
+    usuario.rol === "ENCARGADO" &&
+    esEncargadoDelSector(solicitud, usuario)
+  );
 }
 
-export function puedeEnviar(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "BORRADOR" && esDeLaOrden(orden, usuario);
-}
+const ESTADOS_ANULABLES: EstadoOC[] = ["BORRADOR", "PENDIENTE", "APROBADO"];
 
-export function puedeAprobarORechazar(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "PENDIENTE" && usuario.rol === "ENCARGADO" && esEncargadoDelSector(orden, usuario);
-}
-
-export function puedeObservarPago(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "APROBADO" && usuario.rol === "PAGOS";
-}
-
-export function puedeConfirmarPago(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "APROBADO" && usuario.rol === "PAGOS";
-}
-
-export function puedeResolverObservacion(orden: OrdenCompra, usuario: Usuario): boolean {
-  return orden.estado === "PAGO_OBSERVADO" && usuario.rol === "PAGOS";
-}
-
-const ESTADOS_ANULABLES: EstadoOC[] = ["BORRADOR", "PENDIENTE", "EN_CONSULTA", "APROBADO", "PAGO_OBSERVADO"];
-
-export function puedeAnular(orden: OrdenCompra, usuario: Usuario): boolean {
-  if (!ESTADOS_ANULABLES.includes(orden.estado)) return false;
+export function puedeAnular(solicitud: OrdenCompra, usuario: Usuario): boolean {
+  if (!ESTADOS_ANULABLES.includes(solicitud.estado)) return false;
   if (usuario.rol === "ADMIN") return true;
-  if (usuario.rol === "ENCARGADO") return esEncargadoDelSector(orden, usuario);
+  if (usuario.rol === "ENCARGADO") return esEncargadoDelSector(solicitud, usuario);
   return false;
 }
 
-export function calcularSaldoDisponible(cotizacion: Cotizacion, ordenes: OrdenCompra[]): number {
-  const comprometido = ordenes
-    .filter((orden) => orden.cotizacionId === cotizacion.id && orden.estado !== "ANULADO")
-    .reduce((acc, orden) => acc + Number(orden.monto), 0);
-  return Number(cotizacion.montoTotal) - comprometido;
+export function puedeEliminar(solicitud: OrdenCompra, usuario: Usuario): boolean {
+  return solicitud.estado === "BORRADOR" && esDeLaSolicitud(solicitud, usuario);
+}
+
+// De una OC aprobada se derivan las Órdenes de Pago (Fase 2). Crear una OP no está
+// restringido por rol en el backend, así que el gate acá es el estado de la OC.
+// En una OC de pago único la OP se genera sola al aprobar, así que no se ofrece el
+// alta manual (evita una OP duplicada que excedería el monto).
+export function puedeCrearOrdenPago(solicitud: OrdenCompra): boolean {
+  return solicitud.estado === "APROBADO" && !solicitud.esPagoUnico;
 }

@@ -1,6 +1,6 @@
 export interface Comentario {
   id: string;
-  ordenCompraId: string;
+  ordenPagoId: string;
   autorId: string;
   texto: string;
   creadoEn: string;

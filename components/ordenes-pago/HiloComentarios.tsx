@@ -14,10 +14,10 @@ interface DatosFormulario {
   texto: string;
 }
 
-export function HiloComentarios({ ordenCompraId }: { ordenCompraId: string }) {
+export function HiloComentarios({ ordenPagoId }: { ordenPagoId: string }) {
   const { usuario } = useAuth();
-  const comentarios = useComentarios(ordenCompraId);
-  const crearComentario = useCrearComentario(ordenCompraId);
+  const comentarios = useComentarios(ordenPagoId);
+  const crearComentario = useCrearComentario(ordenPagoId);
   const mapaUsuarios = useMapaUsuarios();
 
   const {

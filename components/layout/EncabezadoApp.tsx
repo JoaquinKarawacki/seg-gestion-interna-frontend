@@ -18,9 +18,9 @@ interface ItemNav {
 
 const ITEMS_NAV: ItemNav[] = [
   { href: "/dashboard", etiqueta: "Inicio" },
-  { href: "/solicitudes-compra", etiqueta: "Órdenes de Compra" },
+  { href: "/ordenes-compra", etiqueta: "Órdenes de Compra" },
   { href: "/cotizaciones", etiqueta: "Cotizaciones" },
-  { href: "/ordenes-compra", etiqueta: "Órdenes de Pago" },
+  { href: "/ordenes-pago", etiqueta: "Órdenes de Pago" },
   { href: "/proyectos", etiqueta: "Proyectos" },
   { href: "/clientes", etiqueta: "Clientes" },
   { href: "/proveedores", etiqueta: "Proveedores" },

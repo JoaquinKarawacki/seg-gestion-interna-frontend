@@ -1,5 +1,5 @@
 import { EsqueletoTabla } from "@/components/ui/EsqueletoTabla";
 
-export default function CargandoSolicitudesCompra() {
+export default function CargandoOrdenesPago() {
   return <EsqueletoTabla />;
 }

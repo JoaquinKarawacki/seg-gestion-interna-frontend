@@ -10,8 +10,8 @@ import { ProveedoresInvolucrados } from "@/components/proyectos/ProveedoresInvol
 import { ModalTarea } from "@/components/tareas/ModalTarea";
 import { TablaTareas } from "@/components/tareas/TablaTareas";
 import { TablaCotizaciones } from "@/components/cotizaciones/TablaCotizaciones";
-import { TablaSolicitudesCompra } from "@/components/solicitudes-compra/TablaSolicitudesCompra";
-import { TablaOrdenesCompraProyecto } from "@/components/ordenes-compra/TablaOrdenesCompraProyecto";
+import { TablaOrdenesCompra } from "@/components/ordenes-compra/TablaOrdenesCompra";
+import { TablaOrdenesPagoProyecto } from "@/components/ordenes-pago/TablaOrdenesPagoProyecto";
 import { Boton, BotonLink } from "@/components/ui/Boton";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
@@ -20,8 +20,8 @@ import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
+import { useOrdenesPagoDeProyecto } from "@/lib/ordenes-pago/hooks";
 import { useOrdenesCompraDeProyecto } from "@/lib/ordenes-compra/hooks";
-import { useSolicitudesCompraDeProyecto } from "@/lib/solicitudes-compra/hooks";
 import type { Tarea } from "@/lib/tareas/tipos";
 
 const TABS = ["resumen", "ordenes-compra", "cotizaciones", "ordenes-pago", "tareas"] as const;
@@ -40,8 +40,8 @@ export default function PaginaDetalleProyecto() {
   const mapaClientes = useMapaClientes();
   const tareas = useTareasDeProyecto(id);
   const cotizaciones = useCotizacionesDeProyecto(id);
+  const ordenesPago = useOrdenesPagoDeProyecto(id);
   const ordenesCompra = useOrdenesCompraDeProyecto(id);
-  const solicitudesCompra = useSolicitudesCompraDeProyecto(id);
 
   const [tab, setTab] = useState<Tab>("resumen");
   const [modalTareaAbierto, setModalTareaAbierto] = useState(false);
@@ -85,7 +85,7 @@ export default function PaginaDetalleProyecto() {
           <FichaCliente cliente={cliente} />
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <TarjetaComprometido cotizaciones={cotizaciones.data} ordenesCompra={ordenesCompra.data} tareas={tareas.data} />
+          <TarjetaComprometido cotizaciones={cotizaciones.data} ordenesPago={ordenesPago.data} tareas={tareas.data} />
         </div>
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">Proveedores activos</h2>
@@ -130,15 +130,15 @@ export default function PaginaDetalleProyecto() {
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Compra</h2>
-            <BotonLink tamanio="sm" href="/solicitudes-compra/nueva">
+            <BotonLink tamanio="sm" href="/ordenes-compra/nueva">
               <IconoMas className="h-4 w-4" />
               Nueva orden de compra
             </BotonLink>
           </div>
-          {solicitudesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de compra..." /> : null}
-          {solicitudesCompra.isError ? <EstadoError error={solicitudesCompra.error} /> : null}
-          {solicitudesCompra.data ? (
-            <TablaSolicitudesCompra solicitudes={solicitudesCompra.data} hayFiltrosActivos={false} />
+          {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de compra..." /> : null}
+          {ordenesCompra.isError ? <EstadoError error={ordenesCompra.error} /> : null}
+          {ordenesCompra.data ? (
+            <TablaOrdenesCompra solicitudes={ordenesCompra.data} hayFiltrosActivos={false} />
           ) : null}
         </div>
       ) : null}
@@ -158,15 +158,15 @@ export default function PaginaDetalleProyecto() {
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Órdenes de Pago</h2>
-            <BotonLink tamanio="sm" href="/ordenes-compra/nueva">
+            <BotonLink tamanio="sm" href="/ordenes-pago/nueva">
               <IconoMas className="h-4 w-4" />
               Nueva orden de pago
             </BotonLink>
           </div>
-          {ordenesCompra.isLoading ? <Cargando etiqueta="Cargando órdenes de pago..." /> : null}
-          {ordenesCompra.isError ? <EstadoError error={ordenesCompra.error} /> : null}
-          {ordenesCompra.data && tareas.data ? (
-            <TablaOrdenesCompraProyecto ordenes={ordenesCompra.data} tareas={tareas.data} />
+          {ordenesPago.isLoading ? <Cargando etiqueta="Cargando órdenes de pago..." /> : null}
+          {ordenesPago.isError ? <EstadoError error={ordenesPago.error} /> : null}
+          {ordenesPago.data && tareas.data ? (
+            <TablaOrdenesPagoProyecto ordenes={ordenesPago.data} tareas={tareas.data} />
           ) : null}
         </div>
       ) : null}

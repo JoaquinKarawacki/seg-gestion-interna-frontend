@@ -4,10 +4,10 @@ import { Tabla, TablaCelda, TablaEncabezadoCelda, TablaFila } from "@/components
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { useAuth } from "@/lib/auth/contexto";
 import { useMapaUsuarios } from "@/lib/usuarios/hooks";
-import { ETIQUETAS_ESTADO_SC } from "@/lib/solicitudes-compra/presentacion";
-import type { HistorialSolicitudCompra as HistorialSC } from "@/lib/solicitudes-compra/tipos";
+import { ETIQUETAS_ESTADO_OP } from "@/lib/ordenes-pago/presentacion";
+import type { HistorialEstadoOP } from "@/lib/ordenes-pago/tipos";
 
-export function HistorialSolicitudCompra({ historial }: { historial: HistorialSC[] }) {
+export function HistorialOrdenPago({ historial }: { historial: HistorialEstadoOP[] }) {
   const { usuario } = useAuth();
   const mapaUsuarios = useMapaUsuarios();
 
@@ -34,7 +34,7 @@ export function HistorialSolicitudCompra({ historial }: { historial: HistorialSC
         {historial.map((entrada) => (
           <TablaFila key={entrada.id}>
             <TablaCelda className="font-medium text-gray-900">
-              {ETIQUETAS_ESTADO_SC[entrada.estadoAnterior]} → {ETIQUETAS_ESTADO_SC[entrada.estadoNuevo]}
+              {ETIQUETAS_ESTADO_OP[entrada.estadoAnterior]} → {ETIQUETAS_ESTADO_OP[entrada.estadoNuevo]}
             </TablaCelda>
             <TablaCelda>{nombreUsuario(entrada.usuarioId)}</TablaCelda>
             <TablaCelda>{entrada.motivo ?? "—"}</TablaCelda>

@@ -5,9 +5,9 @@ import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { useAuth } from "@/lib/auth/contexto";
 import { useMapaUsuarios } from "@/lib/usuarios/hooks";
 import { ETIQUETAS_ESTADO_OC } from "@/lib/ordenes-compra/presentacion";
-import type { HistorialEstadoOC } from "@/lib/ordenes-compra/tipos";
+import type { HistorialOrdenCompra as HistorialSC } from "@/lib/ordenes-compra/tipos";
 
-export function HistorialOrdenCompra({ historial }: { historial: HistorialEstadoOC[] }) {
+export function HistorialOrdenCompra({ historial }: { historial: HistorialSC[] }) {
   const { usuario } = useAuth();
   const mapaUsuarios = useMapaUsuarios();
 

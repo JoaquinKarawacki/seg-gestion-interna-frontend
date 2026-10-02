@@ -1,10 +1,10 @@
 import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
-import type { OrdenCompra } from "@/lib/ordenes-compra/tipos";
+import type { OrdenPago } from "@/lib/ordenes-pago/tipos";
 import type { Tarea } from "@/lib/tareas/tipos";
 
 // IVA general de Uruguay. Fijo porque hoy no hay ningún lado del sistema que
-// permita cargar una tasa distinta (ni en Cotizacion ni en OrdenCompra).
+// permita cargar una tasa distinta (ni en Cotizacion ni en OrdenPago).
 const TASA_IVA_URUGUAY = 0.22;
 
 export interface ResumenCostosProyecto {
@@ -30,7 +30,7 @@ export interface DesgloseTarea {
 // orden de aparición, sin repetir. Solo se usa para decidir si hay algo para
 // mostrar (tarjeta vacía o no); el selector de moneda cicla siempre sobre
 // las 3 monedas soportadas por la app.
-export function obtenerMonedasDisponibles(cotizaciones: Cotizacion[], ordenesCompra: OrdenCompra[]): Moneda[] {
+export function obtenerMonedasDisponibles(cotizaciones: Cotizacion[], ordenesPago: OrdenPago[]): Moneda[] {
   const monedas: Moneda[] = [];
 
   function agregar(moneda: Moneda) {
@@ -40,7 +40,7 @@ export function obtenerMonedasDisponibles(cotizaciones: Cotizacion[], ordenesCom
   cotizaciones
     .filter((cotizacion) => cotizacion.estado === "ACTIVA")
     .forEach((cotizacion) => agregar(cotizacion.moneda));
-  ordenesCompra.filter((orden) => orden.estado === "PAGADO").forEach((orden) => agregar(orden.moneda));
+  ordenesPago.filter((orden) => orden.estado === "PAGADO").forEach((orden) => agregar(orden.moneda));
 
   return monedas;
 }
@@ -68,21 +68,21 @@ function calcularMontoNetoCotizacion(cotizacion: Cotizacion): number {
 }
 
 // Misma idea para la Ejecución, reutilizando los campos ya existentes de
-// OrdenCompra: si no paga IVA, el monto ya es neto; si paga IVA pero el
+// OrdenPago: si no paga IVA, el monto ya es neto; si paga IVA pero el
 // monto no lo incluye (se agrega aparte al pagar), también ya es neto.
 // Solo hay que descontar cuando paga IVA Y el monto cargado lo incluye.
-function calcularMontoNetoOrdenCompra(orden: OrdenCompra): number {
+function calcularMontoNetoOrdenPago(orden: OrdenPago): number {
   const monto = Number(orden.monto);
   return orden.pagaIva && orden.ivaIncluido ? monto / (1 + TASA_IVA_URUGUAY) : monto;
 }
 
 export function calcularResumenCostos(
   cotizaciones: Cotizacion[],
-  ordenesCompra: OrdenCompra[],
+  ordenesPago: OrdenPago[],
   tasas: Map<Moneda, number>,
   monedaSeleccionada?: Moneda,
 ): ResumenCostosProyecto | null {
-  if (obtenerMonedasDisponibles(cotizaciones, ordenesCompra).length === 0) return null;
+  if (obtenerMonedasDisponibles(cotizaciones, ordenesPago).length === 0) return null;
 
   const moneda = monedaSeleccionada ?? MONEDAS[0];
 
@@ -93,9 +93,9 @@ export function calcularResumenCostos(
       0,
     );
 
-  const ejecucion = ordenesCompra
+  const ejecucion = ordenesPago
     .filter((orden) => orden.estado === "PAGADO")
-    .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenCompra(orden), orden.moneda, moneda, tasas), 0);
+    .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenPago(orden), orden.moneda, moneda, tasas), 0);
 
   return {
     moneda,
@@ -110,7 +110,7 @@ export function calcularResumenCostos(
 export function calcularDesglosePorTarea(
   tareas: Tarea[],
   cotizaciones: Cotizacion[],
-  ordenesCompra: OrdenCompra[],
+  ordenesPago: OrdenPago[],
   tasas: Map<Moneda, number>,
   moneda: Moneda,
 ): DesgloseTarea[] {
@@ -118,7 +118,7 @@ export function calcularDesglosePorTarea(
     const cotizacionesDeTarea = cotizaciones.filter(
       (cotizacion) => cotizacion.tareaId === tarea.id && cotizacion.estado === "ACTIVA",
     );
-    const ordenesDeTarea = ordenesCompra.filter((orden) => orden.tareaId === tarea.id && orden.estado === "PAGADO");
+    const ordenesDeTarea = ordenesPago.filter((orden) => orden.tareaId === tarea.id && orden.estado === "PAGADO");
 
     const proveedorIds = new Set([
       ...cotizacionesDeTarea.map((cotizacion) => cotizacion.proveedorId),
@@ -135,7 +135,7 @@ export function calcularDesglosePorTarea(
         );
       const pagado = ordenesDeTarea
         .filter((orden) => orden.proveedorId === proveedorId)
-        .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenCompra(orden), orden.moneda, moneda, tasas), 0);
+        .reduce((acc, orden) => acc + convertir(calcularMontoNetoOrdenPago(orden), orden.moneda, moneda, tasas), 0);
 
       return { proveedorId, cotizado, pagado };
     });

@@ -11,7 +11,7 @@ export const ENTIDADES_AUDITORIA = [
   "Proyecto",
   "Tarea",
   "Cotizacion",
-  "OrdenCompra",
+  "OrdenPago",
   "TipoCambio",
 ] as const;
 
