@@ -13,16 +13,6 @@ export interface Cotizacion {
   archivoPdfRuta: string | null;
 }
 
-export interface CrearCotizacionDto {
-  proyectoId: string;
-  tareaId: string;
-  proveedorId: string;
-  montoTotal: number;
-  moneda: Moneda;
-  ivaIncluido: boolean;
-  archivo?: File;
-}
-
 // Fila de la búsqueda global de cotizaciones (GET /cotizaciones). Trae los
 // nombres ya resueltos por el backend, no solo los ids.
 export interface CotizacionBusqueda {

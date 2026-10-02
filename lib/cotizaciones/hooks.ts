@@ -1,12 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  crearCotizacion,
   descargarArchivoCotizacion,
   listarCotizaciones,
   listarCotizacionesDeProyecto,
   obtenerCotizacion,
 } from "@/lib/cotizaciones/api";
-import type { CrearCotizacionDto } from "@/lib/cotizaciones/tipos";
 
 const CLAVE_COTIZACIONES = "cotizaciones";
 
@@ -31,14 +29,6 @@ export function useCotizacion(id: string | undefined) {
     queryKey: [CLAVE_COTIZACIONES, id],
     queryFn: () => obtenerCotizacion(id as string),
     enabled: Boolean(id),
-  });
-}
-
-export function useCrearCotizacion() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (dto: CrearCotizacionDto) => crearCotizacion(dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [CLAVE_COTIZACIONES] }),
   });
 }
 
