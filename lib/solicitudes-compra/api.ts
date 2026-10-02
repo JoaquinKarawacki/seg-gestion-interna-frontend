@@ -41,6 +41,8 @@ export async function crearSolicitudCompra(dto: CrearSolicitudCompraDto) {
   formData.set("pagaIva", String(dto.pagaIva));
   formData.set("ivaIncluido", String(dto.ivaIncluido));
   if (dto.observaciones) formData.set("observaciones", dto.observaciones);
+  if (dto.esPagoUnico) formData.set("esPagoUnico", "true");
+  if (dto.pagoUnicoFormaPago) formData.set("pagoUnicoFormaPago", dto.pagoUnicoFormaPago);
   if (dto.adjunto) formData.set("adjunto", dto.adjunto);
 
   const { datos } = await peticion<RespuestaExitosa<SolicitudCompra>>("/solicitudes-compra", {

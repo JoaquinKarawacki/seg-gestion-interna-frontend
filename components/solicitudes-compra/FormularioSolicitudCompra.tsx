@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useAuth } from "@/lib/auth/contexto";
 import { useSectores } from "@/lib/sectores/hooks";
 import { useMapaClientes } from "@/lib/clientes/hooks";
@@ -11,6 +11,8 @@ import { useProyectos, useProyecto } from "@/lib/proyectos/hooks";
 import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import { useCrearSolicitudCompra } from "@/lib/solicitudes-compra/hooks";
 import { ETIQUETAS_TIPO_SC } from "@/lib/solicitudes-compra/presentacion";
+import { ETIQUETAS_FORMA_PAGO } from "@/lib/ordenes-compra/presentacion";
+import type { FormaPago } from "@/lib/ordenes-compra/tipos";
 import {
   TAMANO_MAXIMO_ARCHIVO_ADJUNTO_BYTES,
   TIPO_ARCHIVO_ADJUNTO_ACEPTADO,
@@ -36,6 +38,8 @@ interface DatosFormulario {
   ivaIncluido: boolean;
   observaciones: string;
   adjunto?: FileList;
+  esPagoUnico: boolean;
+  pagoUnicoFormaPago?: FormaPago;
 }
 
 interface ErroresLocales {
@@ -66,6 +70,7 @@ export function FormularioSolicitudCompra() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     defaultValues: {
@@ -78,8 +83,11 @@ export function FormularioSolicitudCompra() {
       pagaIva: true,
       ivaIncluido: true,
       observaciones: "",
+      esPagoUnico: false,
     },
   });
+
+  const esPagoUnico = useWatch({ control, name: "esPagoUnico" });
 
   async function alEnviar(datos: DatosFormulario) {
     const nuevosErrores: ErroresLocales = {};
@@ -107,6 +115,8 @@ export function FormularioSolicitudCompra() {
       pagaIva: datos.pagaIva,
       ivaIncluido: datos.ivaIncluido,
       observaciones: datos.observaciones || undefined,
+      esPagoUnico: datos.esPagoUnico,
+      pagoUnicoFormaPago: datos.esPagoUnico ? datos.pagoUnicoFormaPago : undefined,
       adjunto: datos.adjunto?.[0],
     });
     router.push(`/solicitudes-compra/${nueva.id}`);
@@ -222,6 +232,35 @@ export function FormularioSolicitudCompra() {
           <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("ivaIncluido")} />
           IVA incluido en el monto
         </label>
+      </div>
+
+      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("esPagoUnico")} />
+          Pago único — generar la orden de pago al aprobar
+        </label>
+        {esPagoUnico ? (
+          <div className="mt-4">
+            <Select
+              etiqueta="Forma de pago"
+              error={errors.pagoUnicoFormaPago?.message}
+              {...register("pagoUnicoFormaPago", {
+                validate: (valor) => !esPagoUnico || Boolean(valor) || "Requerido",
+              })}
+            >
+              <option value="">— Seleccionar —</option>
+              {Object.entries(ETIQUETAS_FORMA_PAGO).map(([valor, etiqueta]) => (
+                <option key={valor} value={valor}>
+                  {etiqueta}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-2 text-xs text-gray-500">
+              Al aprobar esta orden de compra se creará automáticamente una orden de pago por el
+              monto total, con esta forma de pago.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <TextArea etiqueta="Observaciones (opcional)" {...register("observaciones")} />

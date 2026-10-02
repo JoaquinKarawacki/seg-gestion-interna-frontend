@@ -118,6 +118,7 @@ export default function PaginaDetalleSolicitudCompra() {
         <div className="mt-1 flex items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-900">Orden de compra #{datos.numero}</h1>
           <Insignia tono={TONO_ESTADO_SC[datos.estado]}>{ETIQUETAS_ESTADO_SC[datos.estado]}</Insignia>
+          {datos.esPagoUnico ? <Insignia tono="negro">Pago único</Insignia> : null}
         </div>
       </div>
 
@@ -167,6 +168,12 @@ export default function PaginaDetalleSolicitudCompra() {
           {descargarAdjunto.error ? <EstadoError error={descargarAdjunto.error} /> : null}
         </div>
       </div>
+
+      {datos.esPagoUnico && datos.estado !== "APROBADO" ? (
+        <p className="text-sm text-gray-500">
+          La orden de pago se genera automáticamente al aprobar esta orden de compra.
+        </p>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {puedeCrearOrdenPago(datos) ? (

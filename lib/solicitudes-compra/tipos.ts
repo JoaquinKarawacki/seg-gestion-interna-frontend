@@ -1,4 +1,5 @@
 import type { Moneda } from "@/lib/cotizaciones/tipos";
+import type { FormaPago } from "@/lib/ordenes-compra/tipos";
 
 export type TipoSolicitudCompra = "ARTICULO" | "SERVICIO";
 export type EstadoSolicitudCompra =
@@ -32,6 +33,8 @@ export interface SolicitudCompra {
   observaciones: string | null;
   archivoPdfRuta: string;
   estado: EstadoSolicitudCompra;
+  esPagoUnico: boolean;
+  pagoUnicoFormaPago: FormaPago | null;
 }
 
 // rubroId y rubroNombre son mutuamente excluyentes: se manda uno u otro.
@@ -50,6 +53,9 @@ export interface CrearSolicitudCompraDto {
   ivaIncluido: boolean;
   observaciones?: string;
   adjunto?: File;
+  // Pago único: al aprobar la OC, el backend genera la OP por el total con esta forma de pago.
+  esPagoUnico?: boolean;
+  pagoUnicoFormaPago?: FormaPago;
 }
 
 export interface FiltrosSolicitudCompra {

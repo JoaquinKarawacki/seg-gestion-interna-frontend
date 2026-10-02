@@ -71,6 +71,8 @@ export function puedeEliminar(solicitud: SolicitudCompra, usuario: Usuario): boo
 
 // De una OC aprobada se derivan las Órdenes de Pago (Fase 2). Crear una OP no está
 // restringido por rol en el backend, así que el gate acá es el estado de la OC.
+// En una OC de pago único la OP se genera sola al aprobar, así que no se ofrece el
+// alta manual (evita una OP duplicada que excedería el monto).
 export function puedeCrearOrdenPago(solicitud: SolicitudCompra): boolean {
-  return solicitud.estado === "APROBADO";
+  return solicitud.estado === "APROBADO" && !solicitud.esPagoUnico;
 }
