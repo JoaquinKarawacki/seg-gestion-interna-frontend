@@ -1,11 +1,8 @@
 import { MONEDAS } from "@/lib/cotizaciones/presentacion";
 import type { Cotizacion, Moneda } from "@/lib/cotizaciones/tipos";
+import { TASA_IVA_URUGUAY } from "@/lib/iva";
 import type { OrdenPago } from "@/lib/ordenes-pago/tipos";
 import type { Tarea } from "@/lib/tareas/tipos";
-
-// IVA general de Uruguay. Fijo porque hoy no hay ningún lado del sistema que
-// permita cargar una tasa distinta (ni en Cotizacion ni en OrdenPago).
-const TASA_IVA_URUGUAY = 0.22;
 
 export interface ResumenCostosProyecto {
   moneda: Moneda;

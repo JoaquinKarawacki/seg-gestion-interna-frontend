@@ -8,7 +8,8 @@ import { useSectores } from "@/lib/sectores/hooks";
 import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useProveedores } from "@/lib/proveedores/hooks";
 import { useProyectos, useProyecto } from "@/lib/proyectos/hooks";
-import { MONEDAS } from "@/lib/cotizaciones/presentacion";
+import { formatearMonto, MONEDAS } from "@/lib/cotizaciones/presentacion";
+import { calcularMontoConIva } from "@/lib/iva";
 import { useCrearOrdenCompra } from "@/lib/ordenes-compra/hooks";
 import { ETIQUETAS_TIPO_OC } from "@/lib/ordenes-compra/presentacion";
 import { ETIQUETAS_FORMA_PAGO } from "@/lib/ordenes-pago/presentacion";
@@ -35,7 +36,6 @@ interface DatosFormulario {
   monto: string;
   concepto: string;
   pagaIva: boolean;
-  ivaIncluido: boolean;
   observaciones: string;
   adjunto?: FileList;
   esPagoUnico: boolean;
@@ -80,14 +80,18 @@ export function FormularioOrdenCompra() {
       moneda: "UYU",
       monto: "",
       concepto: "",
-      pagaIva: true,
-      ivaIncluido: true,
+      pagaIva: false,
       observaciones: "",
       esPagoUnico: false,
     },
   });
 
   const esPagoUnico = useWatch({ control, name: "esPagoUnico" });
+  const pagaIva = useWatch({ control, name: "pagaIva" });
+  const monto = useWatch({ control, name: "monto" });
+  const moneda = useWatch({ control, name: "moneda" });
+  const montoNumero = Number(monto);
+  const mostrarMontoConIva = pagaIva && Number.isFinite(montoNumero) && montoNumero > 0;
 
   async function alEnviar(datos: DatosFormulario) {
     const nuevosErrores: ErroresLocales = {};
@@ -113,7 +117,7 @@ export function FormularioOrdenCompra() {
       monto: Number(datos.monto),
       concepto: datos.concepto,
       pagaIva: datos.pagaIva,
-      ivaIncluido: datos.ivaIncluido,
+      ivaIncluido: false,
       observaciones: datos.observaciones || undefined,
       esPagoUnico: datos.esPagoUnico,
       pagoUnicoFormaPago: datos.esPagoUnico ? datos.pagoUnicoFormaPago : undefined,
@@ -205,7 +209,7 @@ export function FormularioOrdenCompra() {
         </Select>
         <div className="sm:col-span-2">
           <Campo
-            etiqueta="Monto"
+            etiqueta="Monto (sin IVA)"
             type="number"
             step="0.01"
             error={errors.monto?.message}
@@ -217,22 +221,26 @@ export function FormularioOrdenCompra() {
         </div>
       </div>
 
+      <div className="flex flex-col gap-3">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("pagaIva")} />
+          ¿Paga IVA?
+        </label>
+        {mostrarMontoConIva ? (
+          <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 text-sm">
+            <span className="text-gray-500">Monto con IVA (22%)</span>
+            <span className="font-medium text-gray-800">
+              {formatearMonto(String(calcularMontoConIva(montoNumero)), moneda)}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
       <TextArea
         etiqueta="Concepto"
         error={errors.concepto?.message}
         {...register("concepto", { required: "Requerido" })}
       />
-
-      <div className="flex flex-wrap gap-6">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("pagaIva")} />
-          Paga IVA
-        </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("ivaIncluido")} />
-          IVA incluido en el monto
-        </label>
-      </div>
 
       <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">

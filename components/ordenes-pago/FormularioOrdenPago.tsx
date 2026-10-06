@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useAuth } from "@/lib/auth/contexto";
 import { useSectores } from "@/lib/sectores/hooks";
 import { useMapaProveedores, useProveedores } from "@/lib/proveedores/hooks";
 import { useProyectos } from "@/lib/proyectos/hooks";
 import { useCotizacionesDeProyecto } from "@/lib/cotizaciones/hooks";
 import { formatearMonto, MONEDAS } from "@/lib/cotizaciones/presentacion";
+import { calcularMontoConIva } from "@/lib/iva";
 import {
   useActualizarOrdenPago,
   useCrearOrdenPago,
@@ -46,7 +47,6 @@ interface DatosFormulario {
   concepto: string;
   formaPago: FormaPago;
   pagaIva: boolean;
-  ivaIncluido: boolean;
   observaciones: string;
   factura?: FileList;
 }
@@ -90,11 +90,12 @@ export function FormularioOrdenPago({
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     // En modo OC se heredan solo Tipo, Sector, Proveedor y Moneda. Monto, Concepto,
-    // Paga IVA / IVA incluido y Observaciones quedan vacíos para que los complete
-    // el solicitante (decisión del usuario).
+    // ¿Paga IVA? y Observaciones quedan vacíos para que los complete el solicitante
+    // (decisión del usuario).
     defaultValues: {
       tipo: ordenExistente?.tipo ?? solicitudOrigen?.tipo ?? "ARTICULO",
       fecha: ordenExistente?.fecha.slice(0, 10) ?? obtenerFechaLocalDeHoy(),
@@ -104,11 +105,16 @@ export function FormularioOrdenPago({
       monto: ordenExistente?.monto ?? "",
       concepto: ordenExistente?.concepto ?? "",
       formaPago: ordenExistente?.formaPago ?? "TRANSFERENCIA_BANCARIA",
-      pagaIva: ordenExistente?.pagaIva ?? (esDesdeOC ? false : true),
-      ivaIncluido: ordenExistente?.ivaIncluido ?? (esDesdeOC ? false : true),
+      pagaIva: ordenExistente?.pagaIva ?? false,
       observaciones: ordenExistente?.observaciones ?? "",
     },
   });
+
+  const pagaIva = useWatch({ control, name: "pagaIva" });
+  const monto = useWatch({ control, name: "monto" });
+  const moneda = useWatch({ control, name: "moneda" });
+  const montoNumero = Number(monto);
+  const mostrarMontoConIva = pagaIva && Number.isFinite(montoNumero) && montoNumero > 0;
 
   useEffect(() => {
     if (cotizacionSeleccionada) {
@@ -131,7 +137,7 @@ export function FormularioOrdenPago({
       concepto: datos.concepto,
       formaPago: datos.formaPago,
       pagaIva: datos.pagaIva,
-      ivaIncluido: datos.ivaIncluido,
+      ivaIncluido: false,
       observaciones: datos.observaciones || undefined,
       factura: datos.factura?.[0],
       confirmarExcesoMonto,
@@ -150,7 +156,7 @@ export function FormularioOrdenPago({
         concepto: datos.concepto,
         formaPago: datos.formaPago,
         pagaIva: datos.pagaIva,
-        ivaIncluido: datos.ivaIncluido,
+        ivaIncluido: false,
         observaciones: datos.observaciones || undefined,
       });
       router.push(`/ordenes-pago/${ordenExistente.id}`);
@@ -183,7 +189,7 @@ export function FormularioOrdenPago({
       concepto: datos.concepto,
       formaPago: datos.formaPago,
       pagaIva: datos.pagaIva,
-      ivaIncluido: datos.ivaIncluido,
+      ivaIncluido: false,
       observaciones: datos.observaciones || undefined,
       factura: datos.factura?.[0],
     });
@@ -324,7 +330,7 @@ export function FormularioOrdenPago({
         </Select>
         <div className="sm:col-span-2">
           <Campo
-            etiqueta="Monto"
+            etiqueta="Monto (sin IVA)"
             type="number"
             step="0.01"
             disabled={Boolean(ordenExistente)}
@@ -341,6 +347,21 @@ export function FormularioOrdenPago({
           El monto no se puede editar una vez creada la orden.
         </p>
       ) : null}
+
+      <div className="flex flex-col gap-3">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("pagaIva")} />
+          ¿Paga IVA?
+        </label>
+        {mostrarMontoConIva ? (
+          <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 text-sm">
+            <span className="text-gray-500">Monto con IVA (22%)</span>
+            <span className="font-medium text-gray-800">
+              {formatearMonto(String(calcularMontoConIva(montoNumero)), moneda)}
+            </span>
+          </div>
+        ) : null}
+      </div>
 
       <TextArea
         etiqueta="Concepto"
@@ -359,17 +380,6 @@ export function FormularioOrdenPago({
           </option>
         ))}
       </Select>
-
-      <div className="flex flex-wrap gap-6">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("pagaIva")} />
-          Paga IVA
-        </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="h-4 w-4 accent-seg-rojo" {...register("ivaIncluido")} />
-          IVA incluido en el monto
-        </label>
-      </div>
 
       <TextArea etiqueta="Observaciones (opcional)" {...register("observaciones")} />
 
