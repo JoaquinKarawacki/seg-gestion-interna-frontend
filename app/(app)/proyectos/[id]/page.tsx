@@ -76,7 +76,9 @@ export default function PaginaDetalleProyecto() {
         <Link href="/proyectos" className="text-sm text-gray-500 hover:text-seg-rojo">
           ← Proyectos
         </Link>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900">{proyecto.data.nombre}</h1>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900">
+          <span className="text-gray-400">#{proyecto.data.numero}</span> {proyecto.data.nombre}
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
