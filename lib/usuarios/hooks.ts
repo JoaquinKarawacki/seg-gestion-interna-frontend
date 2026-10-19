@@ -19,10 +19,10 @@ export function useUsuarios() {
   return useQuery({ queryKey: [CLAVE_USUARIOS], queryFn: listarUsuarios });
 }
 
-// GET /usuarios es solo-ADMIN en el backend — para otros roles esta query falla (403)
-// y el mapa queda vacío (sin reintentos, por la config global de React Query). Los
-// consumidores deben tener un fallback para cuando no se puede resolver el nombre
-// (ej. comparar contra el usuario logueado y mostrar "Vos").
+// GET /usuarios (listado) es accesible a cualquier usuario autenticado, así el
+// historial de OC/OP puede resolver usuarioId -> nombre para todos los roles (no
+// solo ADMIN). El fallback a "—" en los consumidores queda solo por si un id no
+// está en el mapa (ej. un usuario dado de baja que no vino en el listado).
 export function useMapaUsuarios() {
   const { data } = useUsuarios();
   return useMemo(() => new Map(data?.map((usuario) => [usuario.id, usuario])), [data]);
