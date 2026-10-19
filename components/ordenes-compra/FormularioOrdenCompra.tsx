@@ -145,11 +145,14 @@ export function FormularioOrdenCompra() {
           onChange={(evento) => setProyectoId(evento.target.value)}
         >
           <option value="">— Seleccionar —</option>
-          {proyectos.data?.map((proyecto) => (
-            <option key={proyecto.id} value={proyecto.id}>
-              {proyecto.nombre}
-            </option>
-          ))}
+          {proyectos.data?.map((proyecto) => {
+            const cliente = mapaClientes.get(proyecto.clienteId)?.nombre ?? "—";
+            return (
+              <option key={proyecto.id} value={proyecto.id}>
+                #{proyecto.numero} - {proyecto.nombre} - {cliente}
+              </option>
+            );
+          })}
         </Select>
         <Campo etiqueta="Cliente" value={clienteNombre} disabled readOnly />
       </div>
