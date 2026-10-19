@@ -40,25 +40,20 @@ export interface OrdenPago {
   estado: EstadoOP;
 }
 
+// Toda orden de pago nace de una Orden de Compra aprobada: el backend deriva de
+// la OC el tipo, sector, proveedor, moneda, IVA incluido y la cotización (y de la
+// cotización, proyecto/cliente/tarea). Acá solo viaja lo que el usuario ajusta.
 export interface CrearOrdenPagoDto {
-  tipo: TipoOC;
+  ordenCompraId: string;
   fecha: string;
-  sectorId: string;
-  proveedorId: string;
-  cotizacionId?: string;
-  // Fase 2: cuando la OP se genera desde una Orden de Compra aprobada. El backend
-  // deriva la cotización (y con ella proyecto/cliente/tarea) de esta OC.
-  ordenCompraId?: string;
-  moneda: Moneda;
   monto: number;
   concepto: string;
   formaPago: FormaPago;
   pagaIva: boolean;
-  ivaIncluido: boolean;
   observaciones?: string;
   factura?: File;
-  // Confirmación explícita para permitir que el monto supere el de la OC vinculada
-  // (el backend bloquea con MONTO_EXCEDE_COTIZACION si no viene).
+  // Confirmación explícita para permitir que el monto supere lo disponible de la
+  // cotización de la OC (el backend bloquea con MONTO_EXCEDE_COTIZACION si no viene).
   confirmarExcesoMonto?: boolean;
 }
 

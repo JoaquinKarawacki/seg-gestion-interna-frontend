@@ -31,18 +31,12 @@ export async function obtenerOrdenPago(id: string) {
 
 export async function crearOrdenPago(dto: CrearOrdenPagoDto) {
   const formData = new FormData();
-  formData.set("tipo", dto.tipo);
+  formData.set("ordenCompraId", dto.ordenCompraId);
   formData.set("fecha", dto.fecha);
-  formData.set("sectorId", dto.sectorId);
-  formData.set("proveedorId", dto.proveedorId);
-  if (dto.cotizacionId) formData.set("cotizacionId", dto.cotizacionId);
-  if (dto.ordenCompraId) formData.set("ordenCompraId", dto.ordenCompraId);
-  formData.set("moneda", dto.moneda);
   formData.set("monto", String(dto.monto));
   formData.set("concepto", dto.concepto);
   formData.set("formaPago", dto.formaPago);
   formData.set("pagaIva", String(dto.pagaIva));
-  formData.set("ivaIncluido", String(dto.ivaIncluido));
   if (dto.observaciones) formData.set("observaciones", dto.observaciones);
   if (dto.confirmarExcesoMonto) formData.set("confirmarExcesoMonto", "true");
   if (dto.factura) formData.set("factura", dto.factura);

@@ -8,8 +8,8 @@ import { useOrdenCompra } from "@/lib/ordenes-compra/hooks";
 import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 
-// Lee ?solicitudId= para el flujo Fase 2 "crear Orden de Pago desde una Orden de
-// Compra aprobada". Sin el parámetro es el alta clásica de OP.
+// Toda OP nace de una Orden de Compra aprobada (se elige en el dropdown del form).
+// ?solicitudId= es un deep-link desde el detalle de una OC: preselecciona esa OC.
 function ContenidoNuevaOrdenPago() {
   const parametros = useSearchParams();
   const solicitudId = parametros.get("solicitudId") ?? undefined;
