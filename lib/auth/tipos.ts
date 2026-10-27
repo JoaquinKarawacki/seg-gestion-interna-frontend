@@ -4,7 +4,7 @@ export interface Usuario {
   id: string;
   nombre: string;
   email: string;
-  rol: RolUsuario;
+  roles: RolUsuario[];
   sectorId: string | null;
   sectoresEncargado: string[];
 }
@@ -22,7 +22,7 @@ export interface SesionIniciada {
 export interface PayloadJwt {
   sub: string;
   email: string;
-  rol: RolUsuario;
+  roles: RolUsuario[];
   sectorId: string | null;
   sectoresEncargado: string[];
   exp?: number;

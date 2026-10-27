@@ -9,6 +9,7 @@ import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { IconoMas } from "@/components/ui/Iconos";
 import { useAuth } from "@/lib/auth/contexto";
+import { tieneRol } from "@/lib/auth/roles";
 import { useSectores } from "@/lib/sectores/hooks";
 import { useOrdenesPagoPaginadas } from "@/lib/ordenes-pago/hooks";
 import { ETIQUETAS_ESTADO_OP } from "@/lib/ordenes-pago/presentacion";
@@ -103,7 +104,7 @@ export default function PaginaOrdenesPago() {
         >
           Mis borradores
         </Boton>
-        {usuario?.rol === "ENCARGADO" ? (
+        {usuario && tieneRol(usuario, "ENCARGADO") ? (
           <Boton
             tamanio="sm"
             variante={filtroRapido === "pendientes-aprobacion" ? "rojo" : "outline"}
@@ -112,7 +113,7 @@ export default function PaginaOrdenesPago() {
             Pendientes de mi aprobación
           </Boton>
         ) : null}
-        {usuario?.rol === "PAGOS" ? (
+        {usuario && tieneRol(usuario, "PAGOS") ? (
           <Boton
             tamanio="sm"
             variante={filtroRapido === "para-pagar" ? "rojo" : "outline"}

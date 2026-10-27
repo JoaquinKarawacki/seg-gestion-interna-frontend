@@ -1,5 +1,6 @@
 import type { TonoInsignia } from "@/components/ui/Insignia";
 import type { Usuario } from "@/lib/auth/tipos";
+import { tieneRol } from "@/lib/auth/roles";
 import type { Cotizacion } from "@/lib/cotizaciones/tipos";
 import type { EstadoOP, FormaPago, OrdenPago, TipoOC } from "@/lib/ordenes-pago/tipos";
 
@@ -51,7 +52,7 @@ function esDeLaOrden(orden: OrdenPago, usuario: Usuario): boolean {
   return (
     usuario.id === orden.solicitanteId ||
     esEncargadoDelSector(orden, usuario) ||
-    usuario.rol === "ADMIN"
+    tieneRol(usuario, "ADMIN")
   );
 }
 
@@ -77,27 +78,27 @@ export function puedeEnviar(orden: OrdenPago, usuario: Usuario): boolean {
 }
 
 export function puedeAprobarORechazar(orden: OrdenPago, usuario: Usuario): boolean {
-  return orden.estado === "PENDIENTE" && usuario.rol === "ENCARGADO" && esEncargadoDelSector(orden, usuario);
+  return orden.estado === "PENDIENTE" && tieneRol(usuario, "ENCARGADO") && esEncargadoDelSector(orden, usuario);
 }
 
 export function puedeObservarPago(orden: OrdenPago, usuario: Usuario): boolean {
-  return orden.estado === "APROBADO" && usuario.rol === "PAGOS";
+  return orden.estado === "APROBADO" && tieneRol(usuario, "PAGOS");
 }
 
 export function puedeConfirmarPago(orden: OrdenPago, usuario: Usuario): boolean {
-  return orden.estado === "APROBADO" && usuario.rol === "PAGOS";
+  return orden.estado === "APROBADO" && tieneRol(usuario, "PAGOS");
 }
 
 export function puedeResolverObservacion(orden: OrdenPago, usuario: Usuario): boolean {
-  return orden.estado === "PAGO_OBSERVADO" && usuario.rol === "PAGOS";
+  return orden.estado === "PAGO_OBSERVADO" && tieneRol(usuario, "PAGOS");
 }
 
 const ESTADOS_ANULABLES: EstadoOP[] = ["BORRADOR", "PENDIENTE", "EN_CONSULTA", "APROBADO", "PAGO_OBSERVADO"];
 
 export function puedeAnular(orden: OrdenPago, usuario: Usuario): boolean {
   if (!ESTADOS_ANULABLES.includes(orden.estado)) return false;
-  if (usuario.rol === "ADMIN") return true;
-  if (usuario.rol === "ENCARGADO") return esEncargadoDelSector(orden, usuario);
+  if (tieneRol(usuario, "ADMIN")) return true;
+  if (tieneRol(usuario, "ENCARGADO")) return esEncargadoDelSector(orden, usuario);
   return false;
 }
 

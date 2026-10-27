@@ -7,7 +7,7 @@ interface UsuarioSinSector {
   id: string;
   nombre: string;
   email: string;
-  rol: RolUsuario;
+  roles: RolUsuario[];
 }
 
 interface DatosLogin {

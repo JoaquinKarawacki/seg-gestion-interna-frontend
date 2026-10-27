@@ -6,3 +6,7 @@ export const ETIQUETAS_ROL: Record<RolUsuario, string> = {
   PAGOS: "Pagos",
   ADMIN: "Administrador",
 };
+
+export function formatearRoles(roles: RolUsuario[]): string {
+  return roles.map((rol) => ETIQUETAS_ROL[rol]).join(", ");
+}

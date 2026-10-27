@@ -1,4 +1,4 @@
-import type { Usuario } from "./tipos";
+import type { RolUsuario, Usuario } from "./tipos";
 
 const CLAVE_TOKEN = "seg_gi_token";
 const CLAVE_USUARIO = "seg_gi_usuario";
@@ -20,7 +20,13 @@ export function obtenerUsuarioGuardado(): Usuario | null {
   if (!crudo) return null;
 
   try {
-    return JSON.parse(crudo) as Usuario;
+    const usuario = JSON.parse(crudo) as Usuario & { rol?: RolUsuario };
+    // Sesión guardada por una versión vieja: tenía `rol` singular. Se deriva
+    // `roles` para no desloguear al usuario tras el despliegue del multi-rol.
+    if (!usuario.roles && usuario.rol) {
+      return { ...usuario, roles: [usuario.rol] };
+    }
+    return usuario;
   } catch {
     return null;
   }

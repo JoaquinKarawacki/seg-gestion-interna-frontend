@@ -1,5 +1,6 @@
 import type { TonoInsignia } from "@/components/ui/Insignia";
 import type { Usuario } from "@/lib/auth/tipos";
+import { tieneRol } from "@/lib/auth/roles";
 import type {
   EstadoOC,
   OrdenCompra,
@@ -40,7 +41,7 @@ function esDeLaSolicitud(solicitud: OrdenCompra, usuario: Usuario): boolean {
   return (
     usuario.id === solicitud.solicitanteId ||
     esEncargadoDelSector(solicitud, usuario) ||
-    usuario.rol === "ADMIN"
+    tieneRol(usuario, "ADMIN")
   );
 }
 
@@ -51,7 +52,7 @@ export function puedeEnviar(solicitud: OrdenCompra, usuario: Usuario): boolean {
 export function puedeAprobarORechazar(solicitud: OrdenCompra, usuario: Usuario): boolean {
   return (
     solicitud.estado === "PENDIENTE" &&
-    usuario.rol === "ENCARGADO" &&
+    tieneRol(usuario, "ENCARGADO") &&
     esEncargadoDelSector(solicitud, usuario)
   );
 }
@@ -60,8 +61,8 @@ const ESTADOS_ANULABLES: EstadoOC[] = ["BORRADOR", "PENDIENTE", "APROBADO"];
 
 export function puedeAnular(solicitud: OrdenCompra, usuario: Usuario): boolean {
   if (!ESTADOS_ANULABLES.includes(solicitud.estado)) return false;
-  if (usuario.rol === "ADMIN") return true;
-  if (usuario.rol === "ENCARGADO") return esEncargadoDelSector(solicitud, usuario);
+  if (tieneRol(usuario, "ADMIN")) return true;
+  if (tieneRol(usuario, "ENCARGADO")) return esEncargadoDelSector(solicitud, usuario);
   return false;
 }
 

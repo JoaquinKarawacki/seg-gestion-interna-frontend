@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { useAuth } from "@/lib/auth/contexto";
 import { IconoCerrar, IconoMenu, IconoSalir } from "@/components/ui/Iconos";
 import type { RolUsuario } from "@/lib/auth/tipos";
+import { tieneAlgunRol } from "@/lib/auth/roles";
 import logoSeg from "@/public/seg ingenieria logo.png";
 
 interface ItemNav {
@@ -35,7 +36,7 @@ export function EncabezadoApp() {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const itemsVisibles = ITEMS_NAV.filter(
-    (item) => !item.roles || (usuario && item.roles.includes(usuario.rol)),
+    (item) => !item.roles || (usuario ? tieneAlgunRol(usuario, item.roles) : false),
   );
 
   return (
