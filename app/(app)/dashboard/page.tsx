@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth/contexto";
+import { tieneRol } from "@/lib/auth/roles";
 import { TarjetaConteoOC } from "@/components/dashboard/TarjetaConteoOC";
 import { BotonLink } from "@/components/ui/Boton";
 import { IconoBillete, IconoCheck, IconoDocumento, IconoReloj } from "@/components/ui/Iconos";
@@ -25,7 +26,7 @@ export default function PaginaDashboard() {
       </div>
 
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {usuario.rol === "SOLICITANTE" ? (
+        {tieneRol(usuario, "SOLICITANTE") ? (
           <>
             <TarjetaConteoOC
               etiqueta="Mis borradores"
@@ -46,7 +47,7 @@ export default function PaginaDashboard() {
           </>
         ) : null}
 
-        {usuario.rol === "ENCARGADO" ? (
+        {tieneRol(usuario, "ENCARGADO") ? (
           <>
             <TarjetaConteoOC
               etiqueta="Pendientes de mi aprobación"
@@ -66,7 +67,7 @@ export default function PaginaDashboard() {
           </>
         ) : null}
 
-        {usuario.rol === "PAGOS" ? (
+        {tieneRol(usuario, "PAGOS") ? (
           <>
             <TarjetaConteoOC
               etiqueta="Para pagar"
@@ -86,7 +87,7 @@ export default function PaginaDashboard() {
           </>
         ) : null}
 
-        {usuario.rol === "ADMIN" ? (
+        {tieneRol(usuario, "ADMIN") ? (
           <>
             <TarjetaConteoOC
               etiqueta="Borradores"
@@ -118,7 +119,7 @@ export default function PaginaDashboard() {
         <BotonLink variante="outline" tamanio="sm" href="/clientes">
           Ver Clientes
         </BotonLink>
-        {usuario.rol === "ADMIN" ? (
+        {tieneRol(usuario, "ADMIN") ? (
           <BotonLink variante="outline" tamanio="sm" href="/auditoria">
             Ver Auditoría
           </BotonLink>

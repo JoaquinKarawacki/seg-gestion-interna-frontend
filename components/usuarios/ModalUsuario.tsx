@@ -19,7 +19,7 @@ interface DatosFormulario {
   nombre: string;
   email: string;
   contrasena: string;
-  rol: RolUsuario;
+  roles: RolUsuario[];
   sectorId: string;
   sectoresEncargadoIds: string[];
 }
@@ -46,19 +46,19 @@ export function ModalUsuario({
       nombre: usuario?.nombre ?? "",
       email: usuario?.email ?? "",
       contrasena: "",
-      rol: usuario?.rol ?? "SOLICITANTE",
+      roles: usuario?.roles ?? ["SOLICITANTE"],
       sectorId: usuario?.sectorId ?? SIN_SECTOR,
       sectoresEncargadoIds: usuario?.sectoresEncargadoIds ?? [],
     },
   });
 
-  const rolSeleccionado = useWatch({ control, name: "rol" });
+  const rolesSeleccionados = useWatch({ control, name: "roles" }) ?? [];
 
   async function alEnviar(datos: DatosFormulario) {
     // Solo tiene sentido para ENCARGADO — si se cambia el rol a otro, no
     // manda sectores de aprobación aunque hayan quedado tildados de antes.
     const sectoresEncargadoIds =
-      datos.rol === "ENCARGADO" ? datos.sectoresEncargadoIds : [];
+      datos.roles.includes("ENCARGADO") ? datos.sectoresEncargadoIds : [];
 
     if (usuario) {
       // null explícito (no undefined): así el PATCH realmente limpia el sector
@@ -68,7 +68,7 @@ export function ModalUsuario({
       await actualizarUsuario.mutateAsync({
         nombre: datos.nombre,
         email: datos.email,
-        rol: datos.rol,
+        roles: datos.roles,
         sectorId,
         sectoresEncargadoIds,
       });
@@ -78,7 +78,7 @@ export function ModalUsuario({
         nombre: datos.nombre,
         email: datos.email,
         contrasena: datos.contrasena,
-        rol: datos.rol,
+        roles: datos.roles,
         sectorId,
         sectoresEncargadoIds,
       });
@@ -111,24 +111,34 @@ export function ModalUsuario({
               })}
             />
           ) : null}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Select etiqueta="Rol" error={errors.rol?.message} {...register("rol")}>
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="text-sm font-medium text-gray-700">Roles</legend>
+            <div className="flex flex-col gap-2 rounded-lg border border-gray-200 p-3">
               {Object.entries(ETIQUETAS_ROL).map(([valor, etiqueta]) => (
-                <option key={valor} value={valor}>
+                <label key={valor} className="flex items-center gap-2 text-sm text-gray-900">
+                  <input
+                    type="checkbox"
+                    value={valor}
+                    className="accent-seg-rojo"
+                    {...register("roles", { required: "Elegí al menos un rol" })}
+                  />
                   {etiqueta}
-                </option>
+                </label>
               ))}
-            </Select>
-            <Select etiqueta="Sector" error={errors.sectorId?.message} {...register("sectorId")}>
-              <option value={SIN_SECTOR}>— Sin sector —</option>
-              {sectores.data.map((sector) => (
-                <option key={sector.id} value={sector.id}>
-                  {sector.nombre}
-                </option>
-              ))}
-            </Select>
-          </div>
-          {rolSeleccionado === "ENCARGADO" ? (
+            </div>
+            {errors.roles ? (
+              <span className="text-sm text-seg-rojo">{errors.roles.message}</span>
+            ) : null}
+          </fieldset>
+          <Select etiqueta="Sector" error={errors.sectorId?.message} {...register("sectorId")}>
+            <option value={SIN_SECTOR}>— Sin sector —</option>
+            {sectores.data.map((sector) => (
+              <option key={sector.id} value={sector.id}>
+                {sector.nombre}
+              </option>
+            ))}
+          </Select>
+          {rolesSeleccionados.includes("ENCARGADO") ? (
             <fieldset className="flex flex-col gap-1.5">
               <legend className="text-sm font-medium text-gray-700">
                 Sectores que puede aprobar

@@ -9,8 +9,10 @@ import { Cargando } from "@/components/ui/Cargando";
 import { EstadoError } from "@/components/ui/EstadoError";
 import { IconoMas } from "@/components/ui/Iconos";
 import { useAuth } from "@/lib/auth/contexto";
+import { tieneRol } from "@/lib/auth/roles";
 import { useSectores } from "@/lib/sectores/hooks";
 import { useOrdenesPagoPaginadas } from "@/lib/ordenes-pago/hooks";
+import { useDescargarExcelPagos } from "@/lib/exportacion-pagos/hooks";
 import { ETIQUETAS_ESTADO_OP } from "@/lib/ordenes-pago/presentacion";
 import type { EstadoOP } from "@/lib/ordenes-pago/tipos";
 
@@ -21,6 +23,8 @@ const POR_PAGINA = 50;
 export default function PaginaOrdenesPago() {
   const { usuario } = useAuth();
   const sectores = useSectores();
+  const descargarExcel = useDescargarExcelPagos();
+  const esPagos = usuario ? tieneRol(usuario, "PAGOS") : false;
 
   const [filtroRapido, setFiltroRapido] = useState<FiltroRapido>("todas");
   const [estado, setEstado] = useState<EstadoOP | "">("");
@@ -79,14 +83,28 @@ export default function PaginaOrdenesPago() {
           <h1 className="text-2xl font-bold text-gray-900">Órdenes de Pago</h1>
           <p className="text-sm text-gray-500">Solicitudes de pago a proveedores.</p>
         </div>
-        <Link
-          href="/ordenes-pago/nueva"
-          className="inline-flex items-center gap-2 rounded-full bg-seg-rojo px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-seg-rojo-oscuro"
-        >
-          <IconoMas className="h-4 w-4" />
-          Nueva orden de pago
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {esPagos ? (
+            <Boton
+              tamanio="sm"
+              variante="outline"
+              disabled={descargarExcel.isPending}
+              onClick={() => descargarExcel.mutate()}
+            >
+              {descargarExcel.isPending ? "Generando Excel..." : "Descargar Excel de pagos"}
+            </Boton>
+          ) : null}
+          <Link
+            href="/ordenes-pago/nueva"
+            className="inline-flex items-center gap-2 rounded-full bg-seg-rojo px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-seg-rojo-oscuro"
+          >
+            <IconoMas className="h-4 w-4" />
+            Nueva orden de pago
+          </Link>
+        </div>
       </div>
+
+      {descargarExcel.isError ? <EstadoError error={descargarExcel.error} /> : null}
 
       <div className="flex flex-wrap gap-2">
         <Boton
@@ -103,7 +121,7 @@ export default function PaginaOrdenesPago() {
         >
           Mis borradores
         </Boton>
-        {usuario?.rol === "ENCARGADO" ? (
+        {usuario && tieneRol(usuario, "ENCARGADO") ? (
           <Boton
             tamanio="sm"
             variante={filtroRapido === "pendientes-aprobacion" ? "rojo" : "outline"}
@@ -112,7 +130,7 @@ export default function PaginaOrdenesPago() {
             Pendientes de mi aprobación
           </Boton>
         ) : null}
-        {usuario?.rol === "PAGOS" ? (
+        {usuario && tieneRol(usuario, "PAGOS") ? (
           <Boton
             tamanio="sm"
             variante={filtroRapido === "para-pagar" ? "rojo" : "outline"}

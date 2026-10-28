@@ -8,7 +8,7 @@ import { Insignia } from "@/components/ui/Insignia";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { IconoEditar, IconoEliminar } from "@/components/ui/Iconos";
 import { useActualizarUsuario, useDarDeBajaUsuario } from "@/lib/usuarios/hooks";
-import { ETIQUETAS_ROL } from "@/lib/usuarios/presentacion";
+import { formatearRoles } from "@/lib/usuarios/presentacion";
 import type { Usuario } from "@/lib/usuarios/tipos";
 
 function AccionesUsuario({
@@ -83,7 +83,7 @@ export function TablaUsuarios({
             <TablaFila key={usuario.id}>
               <TablaCelda className="font-semibold text-gray-900">{usuario.nombre}</TablaCelda>
               <TablaCelda>{usuario.email}</TablaCelda>
-              <TablaCelda>{ETIQUETAS_ROL[usuario.rol]}</TablaCelda>
+              <TablaCelda>{formatearRoles(usuario.roles)}</TablaCelda>
               <TablaCelda>
                 <Insignia tono={usuario.activo ? "gris" : "apagado"}>
                   {usuario.activo ? "Activo" : "Inactivo"}

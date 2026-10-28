@@ -3,12 +3,13 @@
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth/contexto";
 import type { RolUsuario } from "@/lib/auth/tipos";
+import { tieneAlgunRol } from "@/lib/auth/roles";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 
 export function RequiereRol({ roles, children }: { roles: RolUsuario[]; children: ReactNode }) {
   const { usuario } = useAuth();
 
-  if (!usuario || !roles.includes(usuario.rol)) {
+  if (!usuario || !tieneAlgunRol(usuario, roles)) {
     return (
       <EstadoVacio
         titulo="No tenés permiso para ver esta sección"

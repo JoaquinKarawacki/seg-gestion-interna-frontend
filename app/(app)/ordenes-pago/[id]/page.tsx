@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/contexto";
 import { useMapaClientes } from "@/lib/clientes/hooks";
 import { useMapaProveedores } from "@/lib/proveedores/hooks";
 import { useMapaSectores } from "@/lib/sectores/hooks";
+import { ETIQUETAS_TIPO_CUENTA, tieneDatosBancariosCompletos } from "@/lib/proveedores/presentacion";
 import { useProyecto } from "@/lib/proyectos/hooks";
 import { useTareasDeProyecto } from "@/lib/tareas/hooks";
 import { useCotizacion } from "@/lib/cotizaciones/hooks";
@@ -91,6 +92,8 @@ export default function PaginaDetalleOrdenPago() {
 
   const datos = orden.data;
   const tarea = datos.tareaId ? tareas.data?.find((item) => item.id === datos.tareaId) : undefined;
+  const proveedor = mapaProveedores.get(datos.proveedorId);
+  const esTransferencia = datos.formaPago === "TRANSFERENCIA_BANCARIA";
 
   function cerrarModal() {
     setAccionModal(null);
@@ -138,7 +141,7 @@ export default function PaginaDetalleOrdenPago() {
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <Dato etiqueta="Tipo" valor={ETIQUETAS_TIPO_OP[datos.tipo]} />
           <Dato etiqueta="Fecha" valor={new Date(datos.fecha).toLocaleDateString("es-UY")} />
-          <Dato etiqueta="Proveedor" valor={mapaProveedores.get(datos.proveedorId)?.nombre ?? "—"} />
+          <Dato etiqueta="Proveedor" valor={proveedor?.nombre ?? "—"} />
           <Dato etiqueta="Sector" valor={mapaSectores.get(datos.sectorId)?.nombre ?? "—"} />
           <Dato etiqueta="Monto" valor={formatearMonto(datos.monto, datos.moneda)} />
           <Dato etiqueta="Forma de pago" valor={ETIQUETAS_FORMA_PAGO[datos.formaPago]} />
@@ -154,6 +157,29 @@ export default function PaginaDetalleOrdenPago() {
           </div>
         ) : null}
       </div>
+
+      {esTransferencia ? (
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500">
+            Datos bancarios del proveedor
+          </h2>
+          {proveedor && tieneDatosBancariosCompletos(proveedor) ? (
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+              <Dato etiqueta="Banco" valor={proveedor.banco} />
+              <Dato etiqueta="Tipo de cuenta" valor={ETIQUETAS_TIPO_CUENTA[proveedor.tipoCuenta]} />
+              <Dato etiqueta="Número de cuenta" valor={proveedor.numeroCuenta} />
+            </div>
+          ) : (
+            <p className="text-sm text-amber-700">
+              Faltan los datos bancarios de este proveedor.{" "}
+              <Link href="/proveedores" className="font-medium text-seg-rojo hover:underline">
+                Completalos en Proveedores
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+      ) : null}
 
       {datos.cotizacionId ? (
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">

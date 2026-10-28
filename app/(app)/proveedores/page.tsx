@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth/contexto";
+import { tieneAlgunRol } from "@/lib/auth/roles";
+import type { RolUsuario } from "@/lib/auth/tipos";
 import { ModalProveedor } from "@/components/proveedores/ModalProveedor";
 import { TablaProveedores } from "@/components/proveedores/TablaProveedores";
 import { Boton } from "@/components/ui/Boton";
@@ -12,7 +14,7 @@ import { IconoMas } from "@/components/ui/Iconos";
 import { useProveedores } from "@/lib/proveedores/hooks";
 import type { Proveedor } from "@/lib/proveedores/tipos";
 
-const ROLES_EDICION = ["ADMIN", "PAGOS", "ENCARGADO"];
+const ROLES_EDICION: RolUsuario[] = ["ADMIN", "PAGOS", "ENCARGADO"];
 
 export default function PaginaProveedores() {
   const { usuario } = useAuth();
@@ -20,7 +22,7 @@ export default function PaginaProveedores() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proveedorEditando, setProveedorEditando] = useState<Proveedor | null>(null);
   const [busqueda, setBusqueda] = useState("");
-  const puedeEditar = Boolean(usuario && ROLES_EDICION.includes(usuario.rol));
+  const puedeEditar = Boolean(usuario && tieneAlgunRol(usuario, ROLES_EDICION));
 
   const proveedoresFiltrados = useMemo(() => {
     if (!proveedores.data) return [];

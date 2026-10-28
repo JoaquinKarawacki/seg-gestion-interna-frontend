@@ -504,6 +504,62 @@ Espejo del cambio de backend (ver `contexto-gestion-interna-backend.md`, misma f
 
 ---
 
+## Fase 2 OC→OP, rename físico OC/OP, y ajustes (2026-10-01 → 2026-10-19)
+
+Espejo de la sección homónima de `contexto-gestion-interna-backend.md`. Documenta **todo lo posterior al 2026-09-30** en el frontend. **Cuando haya conflicto con secciones más viejas, esta gana.**
+
+### Rename físico OC/OP — espejo del backend (commit `4b45bef`)
+
+Se renombró el dominio en el código para que coincida con el negocio. **La advertencia de "no confundir SolicitudCompra con ordenes-compra" de la sección "Orden de Compra (entidad nueva) — Fase 1" ya no aplica** — ahora:
+
+| Concepto | Carpeta `lib/` | Carpeta `components/` | Ruta `app/(app)/` |
+|---|---|---|---|
+| **Orden de Compra** (OC, ex `solicitudes-compra`) | `lib/ordenes-compra/` | `components/ordenes-compra/` | `/ordenes-compra` |
+| **Orden de Pago** (OP, ex `ordenes-compra`) | `lib/ordenes-pago/` | `components/ordenes-pago/` | `/ordenes-pago` |
+
+- `components/ordenes-compra/`: `FormularioOrdenCompra`, `SelectorRubro`, `TablaOrdenesCompra`, `HistorialOrdenCompra`.
+- `components/ordenes-pago/`: `FormularioOrdenPago`, `TablaOrdenesPago`, `TablaOrdenesPagoProyecto`, `HistorialOrdenPago`, `HiloComentarios`, `ModalMotivoTransicion`, `ModalAdjuntarFactura`, `ModalConfirmacionExcesoMonto`.
+- `app/(app)/ordenes-compra/{page,nueva,[id],loading}` y `app/(app)/ordenes-pago/{page,nueva,[id],loading}` (misma estructura espejada).
+- **Menú** (`EncabezadoApp.tsx`, commit `0ec51d6`): orden final con "Órdenes de Compra" → `/ordenes-compra`, "Órdenes de Pago" → `/ordenes-pago`, y "Cotizaciones" ubicada **después** de Órdenes de Pago.
+
+### La OP se crea seleccionando una OC aprobada, no un proyecto (commits `504c0e7`/`5edffec`)
+
+`FormularioOrdenPago` ya no arranca eligiendo proyecto: se elige una **OC aprobada** y de ahí se heredan proveedor/sector/moneda/cotización/etc. (el backend los deriva — el form solo manda `ordenCompraId` + fecha/monto/concepto/formaPago/pagaIva/observaciones). El selector de OC muestra `#N - nombre - cliente` (commit `ea86525`).
+
+### Pago único en el alta de OC (commit `f254b69`)
+
+`FormularioOrdenCompra` tiene el checkbox **"pago único"** (`esPagoUnico`) que, al tildarse, revela el `Select` de `pagoUnicoFormaPago`. Si la OC es pago único, al aprobarla el backend genera y envía sola la OP (ver contexto del backend) — el frontend no crea esa OP a mano.
+
+### Alarma de monto — `ModalConfirmacionExcesoMonto` (commit `504c0e7`)
+
+Cuando el monto de la OP supera el saldo de la cotización, el backend devuelve 422 `MONTO_EXCEDE_COTIZACION`. El frontend lo detecta por el `codigo` del `ErrorApi`, abre `ModalConfirmacionExcesoMonto` con la advertencia y, si el usuario confirma, **reenvía con `confirmarExcesoMonto: true`** para forzar el alta. (Es el primer uso real del campo `codigo: string | null` que se había agregado a `ErrorApi` en Fase 0 "por si acá").
+
+### "Tarea" → "Rubro" (etiqueta visible) — IMPLEMENTADO (commit `8f00d6c`)
+
+El renombre de etiqueta que figuraba como **pendiente** en la sección "Pendientes / decisiones abiertas" **ya está hecho**: donde el usuario ve "Tarea"/"alcance" ahora dice "Rubro". El backend y los identificadores de código siguen siendo `Tarea`/`/tareas` (solo cambió el string visible, tal como estaba acordado). En el mismo commit se reordenó la tab de Cotizaciones. **Ignorar el punto "Renombrar Tarea → Rubro — todavía no implementado" de Pendientes: está cerrado.**
+
+### IVA centralizado en `lib/iva.ts` (commit `7e7226f`)
+
+Se extrajo la lógica de IVA a `lib/iva.ts`: `TASA_IVA_URUGUAY = 0.22` (fija, no hay tasa configurable en ningún lado) y `calcularMontoConIva(montoNeto)`. Los formularios de OC y OP dejaron de repetir el cálculo inline y lo importan de ahí. Es el equivalente frontend del `TASA_IVA_URUGUAY` que ya usaba `lib/proyectos/presentacion.ts` para el neto de IVA.
+
+### Proyecto #N en UI (commits `10925a5`/`ea86525`)
+
+El `numero` secuencial del proyecto (nuevo en el backend) se muestra como `#N` en la tabla de proyectos, en el detalle, y en los selectores de proyecto/OC (`#N - nombre - cliente`).
+
+### `useMapaUsuarios()` ya no es solo-ADMIN (commit `7a6a4de`)
+
+Como el backend abrió `GET /usuarios` a cualquier autenticado (ver su contexto), el gotcha de Fase 3 "`useMapaUsuarios()` falla con 403 para no-ADMIN y el mapa queda vacío" **ya no aplica** — todos los roles resuelven nombres de usuario en los historiales. El fallback "Vos" sigue estando, pero ya no es la única vía para los no-ADMIN. Solo se actualizó el comentario del hook.
+
+### Limpieza: código muerto de creación de cotización eliminado (commit `9547566`)
+
+La **"deuda menor"** de la sección "Orden de Compra (entidad nueva) — Fase 1" (`crearCotizacion`/`ModalCotizacion` sin referencias tras cerrarse `POST /cotizaciones`) **ya se saldó**: se borró ese código muerto.
+
+### Verificación
+
+Toda esta tanda se validó con `tsc --noEmit`/`eslint` limpios y pruebas E2E contra la API real del backend (ver el detalle de checks en el contexto del backend). La verificación visual en navegador sigue sin hacerse desde la sesión ([[feedback_claude_in_chrome_no_conecta]]); el usuario prueba la UI por su cuenta.
+
+---
+
 ## Convenciones (heredadas del backend, aplican igual acá)
 
 - **Todo en español**: componentes, hooks, variables, rutas, mensajes — salvo restricciones técnicas de Next.js/React (`layout.tsx`, `page.tsx`, decoradores/convenciones de archivo, nombres de variables de entorno como `NEXT_PUBLIC_API_URL`).

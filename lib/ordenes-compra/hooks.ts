@@ -18,6 +18,7 @@ import type {
 
 const CLAVE_SOLICITUDES_COMPRA = "ordenes-compra";
 const CLAVE_HISTORIAL = "historial-orden-compra";
+const CLAVE_ORDENES_PAGO = "ordenes-pago";
 
 // Acotado por diseño: alcanza para el listado general (se filtra client-side) y
 // para "todas las OC de un proyecto puntual". Ninguno de esos casos debería
@@ -100,6 +101,7 @@ export function useDescargarAdjuntoOrdenCompra() {
 
 function useTransicionOrdenCompra<TVariables>(
   mutationFn: (variables: TVariables) => Promise<unknown>,
+  clavesExtra: string[] = [],
 ) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -107,6 +109,9 @@ function useTransicionOrdenCompra<TVariables>(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CLAVE_SOLICITUDES_COMPRA] });
       queryClient.invalidateQueries({ queryKey: [CLAVE_HISTORIAL] });
+      for (const clave of clavesExtra) {
+        queryClient.invalidateQueries({ queryKey: [clave] });
+      }
     },
   });
 }
@@ -116,7 +121,12 @@ export function useEnviarOrdenCompra() {
 }
 
 export function useAprobarOrdenCompra() {
-  return useTransicionOrdenCompra((id: string) => aprobarOrdenCompra(id));
+  // Aprobar una OC de pago único genera su Orden de Pago server-side (vía el
+  // oyente del backend); hay que invalidar también la lista de órdenes de pago
+  // para que esa OP nueva aparezca sin tener que recargar a mano.
+  return useTransicionOrdenCompra((id: string) => aprobarOrdenCompra(id), [
+    CLAVE_ORDENES_PAGO,
+  ]);
 }
 
 export function useRechazarOrdenCompra() {
