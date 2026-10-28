@@ -64,7 +64,7 @@ export function TablaProyectos({
         <tbody>
           {proyectos.map((proyecto) => (
             <TablaFila key={proyecto.id}>
-              <TablaCelda className="font-semibold text-gray-500">#{proyecto.numero}</TablaCelda>
+              <TablaCelda className="font-semibold text-gray-500">{proyecto.codigoInversion}</TablaCelda>
               <TablaCelda className="font-semibold text-gray-900">
                 <Link href={`/proyectos/${proyecto.id}`} className="hover:text-seg-rojo">
                   {proyecto.nombre}

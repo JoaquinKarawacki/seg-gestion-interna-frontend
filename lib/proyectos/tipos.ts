@@ -1,12 +1,13 @@
 export interface Proyecto {
   id: string;
-  numero: number;
+  codigoInversion: string;
   nombre: string;
   clienteId: string;
   sectorId: string | null;
 }
 
 export interface CrearProyectoDto {
+  codigoInversion: string;
   nombre: string;
   clienteId: string;
   sectorId?: string;

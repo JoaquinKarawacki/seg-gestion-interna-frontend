@@ -149,7 +149,7 @@ export function FormularioOrdenCompra() {
             const cliente = mapaClientes.get(proyecto.clienteId)?.nombre ?? "—";
             return (
               <option key={proyecto.id} value={proyecto.id}>
-                #{proyecto.numero} - {proyecto.nombre} - {cliente}
+                {proyecto.codigoInversion} - {proyecto.nombre} - {cliente}
               </option>
             );
           })}
