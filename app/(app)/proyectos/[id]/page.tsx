@@ -77,7 +77,7 @@ export default function PaginaDetalleProyecto() {
           ← Proyectos
         </Link>
         <h1 className="mt-1 text-2xl font-bold text-gray-900">
-          <span className="text-gray-400">#{proyecto.data.numero}</span> {proyecto.data.nombre}
+          <span className="text-gray-400">{proyecto.data.codigoInversion}</span> {proyecto.data.nombre}
         </h1>
       </div>
 

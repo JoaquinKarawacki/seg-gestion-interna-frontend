@@ -15,6 +15,7 @@ import type { Proyecto } from "@/lib/proyectos/tipos";
 const SIN_SECTOR = "";
 
 interface DatosFormulario {
+  codigoInversion: string;
   nombre: string;
   clienteId: string;
   sectorId: string;
@@ -39,6 +40,7 @@ export function ModalProyecto({
     formState: { errors, isSubmitting },
   } = useForm<DatosFormulario>({
     defaultValues: {
+      codigoInversion: proyecto?.codigoInversion ?? "",
       nombre: proyecto?.nombre ?? "",
       clienteId: proyecto?.clienteId ?? "",
       sectorId: proyecto?.sectorId ?? SIN_SECTOR,
@@ -47,7 +49,20 @@ export function ModalProyecto({
 
   async function alEnviar(datos: DatosFormulario) {
     const sectorId = datos.sectorId === SIN_SECTOR ? undefined : datos.sectorId;
-    await mutacion.mutateAsync({ ...datos, sectorId });
+    if (proyecto) {
+      await actualizarProyecto.mutateAsync({
+        nombre: datos.nombre,
+        clienteId: datos.clienteId,
+        sectorId,
+      });
+    } else {
+      await crearProyecto.mutateAsync({
+        codigoInversion: datos.codigoInversion.trim().toUpperCase(),
+        nombre: datos.nombre,
+        clienteId: datos.clienteId,
+        sectorId,
+      });
+    }
     onCerrar();
   }
 
@@ -59,6 +74,19 @@ export function ModalProyecto({
       {clientes.data && sectores.data ? (
         <form onSubmit={handleSubmit(alEnviar)} className="flex flex-col gap-4">
           {mutacion.error ? <EstadoError error={mutacion.error} /> : null}
+          <Campo
+            etiqueta="Código de inversión (PI)"
+            placeholder="26002PI01"
+            disabled={!!proyecto}
+            error={errors.codigoInversion?.message}
+            {...register("codigoInversion", {
+              required: proyecto ? false : "Requerido",
+              pattern: {
+                value: /^\d{5}PI\d{2}$/i,
+                message: "Formato esperado: 26002PI01",
+              },
+            })}
+          />
           <Campo
             etiqueta="Nombre"
             error={errors.nombre?.message}
